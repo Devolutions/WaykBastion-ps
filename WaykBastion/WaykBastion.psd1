@@ -70,12 +70,7 @@
         'Import-WaykBastionCertificate', 'Import-WaykLdapCertificate',
         'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion', 'Update-WaykBastion',
         'Register-WaykBastionService', 'Unregister-WaykBastionService',
-        'Backup-WaykBastionData', 'Restore-WaykBastionData',
-        'Set-JetConfig', 'Get-JetConfig',
-        'Set-JetConfigPath', 'Get-JetRelayPath',
-        'Import-JetCertificate',
-        'Start-JetRelay', 'Stop-JetRelay', 'Restart-JetRelay', 'Update-JetRelay',
-        'Register-JetRelayService', 'Unregister-JetRelayService')
+        'Backup-WaykBastionData', 'Restore-WaykBastionData')
     
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
     CmdletsToExport = @()
@@ -120,7 +115,7 @@
             # ReleaseNotes = ''
 
             # Prerelease string of this module
-            #Prerelease = 'rc1'
+            Prerelease = 'rc1'
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
