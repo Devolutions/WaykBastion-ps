@@ -4,19 +4,21 @@ Describe 'Wayk Bastion config' {
 	InModuleScope WaykBastion {
 		Context 'Fresh environment' {
 			It 'Creates new configuration with realm and external url' {
-                New-WaykBastionConfig -ConfigPath $TestDrive `
+                $ConfigPath = $TestDrive
+                New-WaykBastionConfig -ConfigPath:$ConfigPath `
                     -Realm 'buzzword.marketing' -ExternalUrl 'https://den.buzzword.marketing'
-                $(Get-WaykBastionConfig -ConfigPath $TestDrive).Realm | Should -Be 'buzzword.marketing'
-                $(Get-WaykBastionConfig -ConfigPath $TestDrive).ExternalUrl | Should -Be 'https://den.buzzword.marketing'
+                $(Get-WaykBastionConfig -ConfigPath:$ConfigPath).Realm | Should -Be 'buzzword.marketing'
+                $(Get-WaykBastionConfig -ConfigPath:$ConfigPath).ExternalUrl | Should -Be 'https://den.buzzword.marketing'
 			}
             It 'Sets and clears MongoDB configuration' {
-                Set-WaykBastionConfig -ConfigPath $TestDrive `
+                $ConfigPath = $TestDrive
+                Set-WaykBastionConfig -ConfigPath:$ConfigPath `
                     -MongoExternal $true -MongoUrl 'mongodb://mongo-server:27017'
-                $config = Get-WaykBastionConfig -ConfigPath $TestDrive
+                $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
                 $config.MongoExternal | Should -Be $true
                 $config.MongoUrl | Should -Be 'mongodb://mongo-server:27017'
-                Clear-WaykBastionConfig -ConfigPath $TestDrive 'Mongo*'
-                $config = Get-WaykBastionConfig -ConfigPath $TestDrive
+                Clear-WaykBastionConfig -ConfigPath:$ConfigPath 'Mongo*'
+                $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
                 $config.MongoExternal | Should -Be $false
                 $config.MongoUrl | Should -BeNullOrEmpty
 			}

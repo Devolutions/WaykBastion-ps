@@ -66,7 +66,7 @@
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @('New-WaykBastionConfig', 'Set-WaykBastionConfig',
         'Get-WaykBastionConfig', 'Clear-WaykBastionConfig', 'Remove-WaykBastionConfig',
-        'Set-WaykBastionConfigPath', 'Enter-WaykBastionConfigPath', 'Get-WaykBastionPath',
+        'Get-WaykBastionPath', 'Enter-WaykBastionConfig', 'Exit-WaykBastionConfig',
         'Import-WaykBastionCertificate', 'Import-WaykLdapCertificate',
         'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion', 'Update-WaykBastion',
         'Register-WaykBastionService', 'Unregister-WaykBastionService',
@@ -81,9 +81,11 @@
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
     AliasesToExport = @('New-WaykDenConfig', 'Set-WaykDenConfig',
         'Get-WaykDenConfig', 'Clear-WaykDenConfig', 'Remove-WaykDenConfig',
-        'Set-WaykDenConfigPath', 'Enter-WaykDenConfigPath', 'Get-WaykDenPath', 'Import-WaykDenCertificate',
+        'Get-WaykDenPath',
+        'Import-WaykDenCertificate',
         'Start-WaykDen', 'Stop-WaykDen', 'Restart-WaykDen', 'Update-WaykDen',
-        'Register-WaykDenService', 'Unregister-WaykDenService', 'Backup-WaykDenData', 'Restore-WaykDenData')
+        'Register-WaykDenService', 'Unregister-WaykDenService',
+        'Backup-WaykDenData', 'Restore-WaykDenData')
     
     # DSC resources to export from this module
     # DscResourcesToExport = @()

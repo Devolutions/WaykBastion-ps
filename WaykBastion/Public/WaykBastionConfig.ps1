@@ -83,6 +83,8 @@ class WaykBastionConfig
     [string] $SyslogServer
 }
 
+$script:WaykBastionConfigFormat = "json"
+
 function Find-WaykBastionConfig
 {
     param(
@@ -91,27 +93,38 @@ function Find-WaykBastionConfig
 
     if (-Not $ConfigPath) {
         $ConfigPath = Get-WaykBastionPath 'ConfigPath'
-    }
 
-    if (Test-Path -Path $(Join-Path $(Get-Location) "wayk-den.yml") -PathType "Leaf") {
-        $ConfigPath = Get-Location
-    }
-
-    if ($Env:DEN_CONFIG_PATH) {
-        $ConfigPath = $Env:DEN_CONFIG_PATH
+        if ($Env:WAYK_BASTION_CONFIG_PATH) {
+            $ConfigPath = $Env:WAYK_BASTION_CONFIG_PATH
+        }
     }
 
     return $ConfigPath
 }
 
-function Set-WaykBastionConfigPath
+function Enter-WaykBastionConfig
 {
+    [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true,Position=0)]
-        [string] $ConfigPath
+        [string] $ConfigPath,
+        [switch] $ChangeDirectory
     )
 
-    $Env:DEN_CONFIG_PATH = $ConfigPath
+    if ($ConfigPath) {
+        $ConfigPath = Resolve-Path $ConfigPath
+        $Env:WAYK_BASTION_CONFIG_PATH = $ConfigPath
+    }
+
+    $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
+
+    if ($ChangeDirectory) {
+        Set-Location $ConfigPath
+    }
+}
+
+function Exit-WaykBastionConfig
+{
+    Remove-Item Env:WAYK_BASTION_CONFIG_PATH
 }
 
 function Get-WaykBastionPath()
@@ -145,19 +158,6 @@ function Get-WaykBastionPath()
         'ConfigPath' { $GlobalPath }
 		default { throw("Invalid path type: $PathType") }
 	}
-}
-
-function Enter-WaykBastionConfigPath()
-{
-	[CmdletBinding()]
-	param(
-		[Parameter(Position=0)]
-        [ValidateSet("ConfigPath","GlobalPath","LocalPath")]
-		[string] $PathType = "ConfigPath"
-	)
-
-    $ConfigPath = Find-WaykBastionConfig
-    Set-Location $ConfigPath
 }
 
 function Expand-WaykBastionConfigKeys
@@ -404,6 +404,34 @@ function Export-HostInfo()
     Set-Content -Path $HostInfoFile -Value $JsonValue -Force
 }
 
+function Save-WaykBastionConfig
+{
+    [CmdletBinding()]
+    param(
+        [string] $ConfigPath,
+        [Parameter(Mandatory=$true)]
+        [WaykBastionConfig] $Config,
+        [ValidateSet("yaml","json")]
+        [string] $ConfigFormat = "json"
+    )
+
+    $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
+    $Config = Remove-DefaultProperties $Config $([WaykBastionConfig]::new())
+
+    New-Item -Path $ConfigPath -ItemType "Directory" -Force | Out-Null
+
+    if ($ConfigFormat -eq 'json') {
+        $ConfigFile = Join-Path $ConfigPath "bastion.json"
+        $Properties = $Config.PSObject.Properties.Name
+        $NonNullProperties = $Properties.Where({ -Not [string]::IsNullOrEmpty($Config.$_) })
+        $ConfigData = $Config | Select-Object $NonNullProperties | ConvertTo-Json
+        [System.IO.File]::WriteAllLines($ConfigFile, $ConfigData, $(New-Object System.Text.UTF8Encoding $False))
+    } elseif ($ConfigFormat -eq 'yaml') {
+        $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
+        ConvertTo-Yaml -Data (ConvertTo-SnakeCaseObject -Object $Config) -OutFile $ConfigFile -Force
+    }
+}
+
 function New-WaykBastionConfig
 {
     [CmdletBinding()]
@@ -496,7 +524,6 @@ function New-WaykBastionConfig
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
 
     New-Item -Path $ConfigPath -ItemType "Directory" -Force | Out-Null
-    $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
 
     $DenServerPath = Join-Path $ConfigPath "den-server"
     $DenPublicKeyFile = Join-Path $DenServerPath "den-public.pem"
@@ -521,10 +548,7 @@ function New-WaykBastionConfig
 
     Expand-WaykBastionConfigKeys -Config:$config
 
-    # remove default properties from object
-    $config = Remove-DefaultProperties $config $([WaykBastionConfig]::new())
-
-    ConvertTo-Yaml -Data (ConvertTo-SnakeCaseObject -Object $config) -OutFile $ConfigFile -Force:$Force
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
 
     Export-TraefikToml -ConfigPath:$ConfigPath
 }
@@ -621,7 +645,6 @@ function Set-WaykBastionConfig
     $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
 
     New-Item -Path $ConfigPath -ItemType "Directory" -Force | Out-Null
-    $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
 
     $properties = [WaykBastionConfig].GetProperties() | ForEach-Object { $_.Name }
     foreach ($param in $PSBoundParameters.GetEnumerator()) {
@@ -632,11 +655,7 @@ function Set-WaykBastionConfig
 
     Expand-WaykBastionConfigKeys -Config:$config
 
-    # remove default properties from object
-    $config = Remove-DefaultProperties $config $([WaykBastionConfig]::new())
- 
-    # always force overwriting wayk-den.yml when updating the config file
-    ConvertTo-Yaml -Data (ConvertTo-SnakeCaseObject -Object $config) -OutFile $ConfigFile -Force
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
 
     Export-TraefikToml -ConfigPath:$ConfigPath
 }
@@ -653,22 +672,48 @@ function Get-WaykBastionConfig
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
 
-    $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
-    $ConfigData = Get-Content -Path $ConfigFile -Raw -ErrorAction Stop
-    $yaml = ConvertFrom-Yaml -Yaml $ConfigData -UseMergingParser -AllDocuments -Ordered
-
     $config = [WaykBastionConfig]::new()
 
-    [WaykBastionConfig].GetProperties() | ForEach-Object {
-        $Name = $_.Name
-        $snake_name = ConvertTo-SnakeCase -Value $Name
-        if ($yaml.Contains($snake_name)) {
-            if ($yaml.$snake_name -is [string]) {
-                if (![string]::IsNullOrEmpty($yaml.$snake_name)) {
-                    $config.$Name = ($yaml.$snake_name).Trim()
+    $ConfigFileJson = Join-Path $ConfigPath "bastion.json"
+    $ConfigFileYaml = Join-Path $ConfigPath "wayk-den.yml"
+
+    if (Test-Path -Path $ConfigFileJson -PathType 'Leaf') {
+        $ConfigFile = $ConfigFileJson
+        $ConfigFormat = 'json'
+    } elseif (Test-Path -Path $ConfigFileYaml -PathType 'Leaf') {
+        $ConfigFile = $ConfigFileYaml
+        $ConfigFormat = 'yaml'
+    } else {
+        throw "Config file not found in $ConfigPath"
+    }
+
+    if ($ConfigFormat -eq 'json') {
+        $ConfigData = Get-Content -Path $ConfigFile -Encoding UTF8 -ErrorAction Stop
+        $json = $ConfigData | ConvertFrom-Json
+
+        [WaykBastionConfig].GetProperties() | ForEach-Object {
+            $Name = $_.Name
+            if ($json.PSObject.Properties[$Name]) {
+                $Property = $json.PSObject.Properties[$Name]
+                $Value = $Property.Value
+                $config.$Name = $Value
+            }
+        }
+    } else {
+        $ConfigData = Get-Content -Path $ConfigFile -Raw -ErrorAction Stop
+        $yaml = ConvertFrom-Yaml -Yaml $ConfigData -UseMergingParser -AllDocuments -Ordered
+
+        [WaykBastionConfig].GetProperties() | ForEach-Object {
+            $Name = $_.Name
+            $snake_name = ConvertTo-SnakeCase -Value $Name
+            if ($yaml.Contains($snake_name)) {
+                if ($yaml.$snake_name -is [string]) {
+                    if (![string]::IsNullOrEmpty($yaml.$snake_name)) {
+                        $config.$Name = ($yaml.$snake_name).Trim()
+                    }
+                } else {
+                    $config.$Name = $yaml.$snake_name
                 }
-            } else {
-                $config.$Name = $yaml.$snake_name
             }
         }
     }
@@ -696,33 +741,61 @@ function Clear-WaykBastionConfig
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
 
-    $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
-    $ConfigData = Get-Content -Path $ConfigFile -Raw -ErrorAction Stop
-    $yaml = ConvertFrom-Yaml -Yaml $ConfigData -UseMergingParser -AllDocuments -Ordered
-
     $config = [WaykBastionConfig]::new()
 
-    [WaykBastionConfig].GetProperties() | ForEach-Object {
-        $Name = $_.Name
-        if ($Name -NotLike $Filter) {
-            $snake_name = ConvertTo-SnakeCase -Value $Name
-            if ($yaml.Contains($snake_name)) {
-                if ($yaml.$snake_name -is [string]) {
-                    if (![string]::IsNullOrEmpty($yaml.$snake_name)) {
-                        $config.$Name = ($yaml.$snake_name).Trim()
+    $ConfigFileJson = Join-Path $ConfigPath "bastion.json"
+    $ConfigFileYaml = Join-Path $ConfigPath "wayk-den.yml"
+
+    if (Test-Path -Path $ConfigFileJson -PathType 'Leaf') {
+        $ConfigFile = $ConfigFileJson
+        $ConfigFormat = 'json'
+    } elseif (Test-Path -Path $ConfigFileYaml -PathType 'Leaf') {
+        $ConfigFile = $ConfigFileYaml
+        $ConfigFormat = 'yaml'
+    } else {
+        throw "Config file not found in $ConfigPath"
+    }
+
+    if ($ConfigFormat -eq 'json') {
+        $ConfigData = Get-Content -Path $ConfigFile -Encoding UTF8 -ErrorAction Stop
+        $json = $ConfigData | ConvertFrom-Json
+
+        [WaykBastionConfig].GetProperties() | ForEach-Object {
+            $Name = $_.Name
+            if ($Name -NotLike $Filter) {
+                if ($json.PSObject.Properties[$Name]) {
+                    if ($json.$Name -is [string]) {
+                        if (![string]::IsNullOrEmpty($json.$Name)) {
+                            $config.$Name = ($json.$Name).Trim()
+                        }
+                    } else {
+                        $config.$Name = $json.$Name
                     }
-                } else {
-                    $config.$Name = $yaml.$snake_name
+                }
+            }
+        }
+    } else {
+        $ConfigData = Get-Content -Path $ConfigFile -Raw -ErrorAction Stop
+        $yaml = ConvertFrom-Yaml -Yaml $ConfigData -UseMergingParser -AllDocuments -Ordered
+    
+        [WaykBastionConfig].GetProperties() | ForEach-Object {
+            $Name = $_.Name
+            if ($Name -NotLike $Filter) {
+                $snake_name = ConvertTo-SnakeCase -Value $Name
+                if ($yaml.Contains($snake_name)) {
+                    if ($yaml.$snake_name -is [string]) {
+                        if (![string]::IsNullOrEmpty($yaml.$snake_name)) {
+                            $config.$Name = ($yaml.$snake_name).Trim()
+                        }
+                    } else {
+                        $config.$Name = $yaml.$snake_name
+                    }
                 }
             }
         }
     }
 
-    # remove default properties from object
-    $config = Remove-DefaultProperties $config $([WaykBastionConfig]::new())
-
-    # always force overwriting wayk-den.yml when updating the config file
-    ConvertTo-Yaml -Data (ConvertTo-SnakeCaseObject -Object $config) -OutFile $ConfigFile -Force
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
 }
 
 function Remove-WaykBastionConfig
@@ -733,7 +806,8 @@ function Remove-WaykBastionConfig
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
-    Remove-Item -Path $(Join-Path $ConfigPath 'wayk-den.yml')
+    Remove-Item -Path $(Join-Path $ConfigPath 'bastion.json') -Force
+    Remove-Item -Path $(Join-Path $ConfigPath 'wayk-den.yml') -Force
     Remove-Item -Path $(Join-Path $ConfigPath 'den-server') -Recurse
     Remove-Item -Path $(Join-Path $ConfigPath 'traefik') -Recurse
 }
