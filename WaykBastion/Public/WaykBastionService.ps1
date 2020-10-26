@@ -856,6 +856,3 @@ function Unregister-WaykBastionService
 
     Unregister-CmdletService -Definition $Definition -Force:$Force
 }
-
-Export-ModuleMember -Function Start-WaykBastion, Stop-WaykBastion, Restart-WaykBastion, `
-    Update-WaykBastion, Register-WaykBastionService, Unregister-WaykBastionService

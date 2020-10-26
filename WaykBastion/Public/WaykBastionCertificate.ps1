@@ -58,5 +58,3 @@ function Import-WaykLdapCertificate
     $LdapRootCaFile = Join-Path $DenServerPath "ldap-root-ca.pem"
     Set-Content -Path $LdapRootCaFile -Value $CertificateData -Force
 }
-
-Export-ModuleMember -Function Import-WaykBastionCertificate, Import-WaykLdapCertificate
