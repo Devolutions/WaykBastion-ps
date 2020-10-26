@@ -737,6 +737,3 @@ function Remove-WaykBastionConfig
     Remove-Item -Path $(Join-Path $ConfigPath 'den-server') -Recurse
     Remove-Item -Path $(Join-Path $ConfigPath 'traefik') -Recurse
 }
-
-Export-ModuleMember -Function New-WaykBastionConfig, Set-WaykBastionConfig, Get-WaykBastionConfig, `
-    Clear-WaykBastionConfig, Remove-WaykBastionConfig, Set-WaykBastionConfigPath, Enter-WaykBastionConfigPath, Get-WaykBastionPath

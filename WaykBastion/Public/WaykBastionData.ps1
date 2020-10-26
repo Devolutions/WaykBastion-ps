@@ -50,13 +50,13 @@ function Backup-WaykBastionData
     # make sure parent output directory exists
     New-Item -Path $(Split-Path -Path $BackupPath) -ItemType "Directory" -Force | Out-Null
 
-    $args = @('docker', 'exec', $ContainerName, 'mongodump', '--gzip', "--archive=${TempBackupPath}")
-    $cmd = $args -Join " "
+    $CmdArgs = @('docker', 'exec', $ContainerName, 'mongodump', '--gzip', "--archive=${TempBackupPath}")
+    $cmd = $CmdArgs -Join " "
     Write-Verbose $cmd
     Invoke-Expression $cmd
 
-    $args = @('docker', 'cp', "$ContainerName`:$TempBackupPath", "`"$BackupPath`"")
-    $cmd = $args -Join " "
+    $CmdArgs = @('docker', 'cp', "$ContainerName`:$TempBackupPath", "`"$BackupPath`"")
+    $cmd = $CmdArgs -Join " "
     Write-Verbose $cmd
     Invoke-Expression $cmd
 }
@@ -107,15 +107,13 @@ function Restore-WaykBastionData
         throw "$BackupPath does not exist"
     }
 
-    $args = @('docker', 'cp', "`"$BackupPath`"", "$ContainerName`:$TempBackupPath")
-    $cmd = $args -Join " "
+    $CmdArgs = @('docker', 'cp', "`"$BackupPath`"", "$ContainerName`:$TempBackupPath")
+    $cmd = $CmdArgs -Join " "
     Write-Verbose $cmd
     Invoke-Expression $cmd
 
-    $args = @('docker', 'exec', $ContainerName, 'mongorestore', '--drop', '--gzip', "--archive=${TempBackupPath}")
-    $cmd = $args -Join " "
+    $CmdArgs = @('docker', 'exec', $ContainerName, 'mongorestore', '--drop', '--gzip', "--archive=${TempBackupPath}")
+    $cmd = $CmdArgs -Join " "
     Write-Verbose $cmd
     Invoke-Expression $cmd
 }
-
-Export-ModuleMember -Function Backup-WaykBastionData, Restore-WaykBastionData

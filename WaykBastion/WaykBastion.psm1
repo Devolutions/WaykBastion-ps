@@ -1,8 +1,8 @@
 
-$module = 'WaykBastion'
-$manifest = Import-PowerShellDataFile -Path "$PSScriptRoot/$module.psd1"
+$ModuleName = $(Get-Item $PSCommandPath).BaseName
+$Manifest = Import-PowerShellDataFile -Path $(Join-Path $PSScriptRoot "${ModuleName}.psd1")
 
-Export-ModuleMember -Cmdlet @($manifest.CmdletsToExport)
+Export-ModuleMember -Cmdlet @($Manifest.CmdletsToExport)
 
 $Public = @(Get-ChildItem -Path "$PSScriptRoot/Public/*.ps1" -Recurse)
 $Private = @(Get-ChildItem -Path "$PSScriptRoot/Private/*.ps1" -Recurse)
@@ -19,7 +19,9 @@ Foreach ($Import in @($Public + $Private))
     }
 }
 
-$LegacyFunctionNames = @($manifest.AliasesToExport) | Where-Object { $_ -Match 'WaykDen' }
+Export-ModuleMember -Function @($Manifest.FunctionsToExport)
+
+$LegacyFunctionNames = @($Manifest.AliasesToExport) | Where-Object { $_ -Match 'WaykDen' }
 
 Foreach ($FunctionName in $LegacyFunctionNames) {
     $OldFunctionName = $FunctionName
