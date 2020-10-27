@@ -68,7 +68,8 @@
         'Get-WaykBastionConfig', 'Clear-WaykBastionConfig', 'Remove-WaykBastionConfig',
         'Get-WaykBastionPath', 'Enter-WaykBastionConfig', 'Exit-WaykBastionConfig',
         'Import-WaykBastionCertificate', 'Import-WaykLdapCertificate',
-        'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion', 'Update-WaykBastion',
+        'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion',
+        'Update-WaykBastionImage',
         'Register-WaykBastionService', 'Unregister-WaykBastionService',
         'Backup-WaykBastionData', 'Restore-WaykBastionData')
     
@@ -83,7 +84,8 @@
         'Get-WaykDenConfig', 'Clear-WaykDenConfig', 'Remove-WaykDenConfig',
         'Get-WaykDenPath',
         'Import-WaykDenCertificate',
-        'Start-WaykDen', 'Stop-WaykDen', 'Restart-WaykDen', 'Update-WaykDen',
+        'Start-WaykDen', 'Stop-WaykDen', 'Restart-WaykDen',
+        'Update-WaykDenImage',
         'Register-WaykDenService', 'Unregister-WaykDenService',
         'Backup-WaykDenData', 'Restore-WaykDenData')
     
@@ -117,7 +119,7 @@
             # ReleaseNotes = ''
 
             # Prerelease string of this module
-            Prerelease = 'rc3'
+            Prerelease = 'rc4'
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false

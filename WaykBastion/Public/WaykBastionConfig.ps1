@@ -425,7 +425,9 @@ function Save-WaykBastionConfig
         $Properties = $Config.PSObject.Properties.Name
         $NonNullProperties = $Properties.Where({ -Not [string]::IsNullOrEmpty($Config.$_) })
         $ConfigData = $Config | Select-Object $NonNullProperties | ConvertTo-Json
-        [System.IO.File]::WriteAllLines($ConfigFile, $ConfigData, $(New-Object System.Text.UTF8Encoding $False))
+        $AsByteStream = if ($PSEdition -eq 'Core') { @{AsByteStream = $true} } else { @{'Encoding' = 'Byte'} }
+        $ConfigBytes = $([System.Text.Encoding]::UTF8).GetBytes($ConfigData)
+        Set-Content -Path $ConfigFile -Value $ConfigBytes @AsByteStream
     } elseif ($ConfigFormat -eq 'yaml') {
         $ConfigFile = Join-Path $ConfigPath "wayk-den.yml"
         ConvertTo-Yaml -Data (ConvertTo-SnakeCaseObject -Object $Config) -OutFile $ConfigFile -Force
@@ -548,7 +550,7 @@ function New-WaykBastionConfig
 
     Expand-WaykBastionConfigKeys -Config:$config
 
-    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
     Export-TraefikToml -ConfigPath:$ConfigPath
 }
@@ -655,7 +657,7 @@ function Set-WaykBastionConfig
 
     Expand-WaykBastionConfigKeys -Config:$config
 
-    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
     Export-TraefikToml -ConfigPath:$ConfigPath
 }
@@ -716,6 +718,9 @@ function Get-WaykBastionConfig
                 }
             }
         }
+
+        # automatically convert to bastion.json format for next time (fail silently if we can't write config file)
+        Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat 'json' -ErrorAction 'SilentlyContinue'
     }
 
     if ($Expand) {
@@ -795,7 +800,7 @@ function Clear-WaykBastionConfig
         }
     }
 
-    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat
+    Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 }
 
 function Remove-WaykBastionConfig
