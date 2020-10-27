@@ -322,7 +322,7 @@ function Get-WaykBastionService
         "RUST_BACKTRACE" = $RustBacktrace;   
     }
 
-    $DenLucid.Healthcheck = [DockerHealthcheck]::new("curl -sS $LucidUrl/health")
+    $DenLucid.Healthcheck = [DockerHealthcheck]::new("curl -sS $LucidUrl/healthz")
     $DenLucid.External = $config.LucidExternal
     $Services += $DenLucid
 
