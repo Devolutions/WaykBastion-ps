@@ -21,7 +21,7 @@ function Get-WaykBastionImage
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
-    $JetVersion = '0.12.0'
+    $GatewayVersion = '0.13.0'
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
@@ -34,7 +34,7 @@ function Get-WaykBastionImage
             "den-nats" = "library/nats:${NatsVersion}-linux";
             "den-redis" = "library/redis:${RedisVersion}-buster";
 
-            "devolutions-jet" = "devolutions/devolutions-jet:${JetVersion}-buster";
+            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-buster-dev";
         }
     } else {
         [ordered]@{ # Windows containers
@@ -47,7 +47,7 @@ function Get-WaykBastionImage
             "den-nats" = "library/nats:${NatsVersion}-windowsservercore-1809";
             "den-redis" = ""; # not available
 
-            "devolutions-jet" = "devolutions/devolutions-jet:${JetVersion}-servercore-ltsc2019";
+            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-servercore-ltsc2019-dev";
         }
     }
 
@@ -80,7 +80,7 @@ function Get-WaykBastionImage
     }
 
     if ($config.JetRelayImage) {
-        $images['devolutions-jet'] = $config.JetRelayImage
+        $images['den-gateway'] = $config.JetRelayImage
     }
 
     return $images
@@ -472,65 +472,66 @@ function Get-WaykBastionService
     $DenTraefik.External = $config.TraefikExternal
     $Services += $DenTraefik
 
-    # jet relay service
+    # den-gateway service
     if (-Not $config.JetExternal) {
         $url = [System.Uri]::new($config.ExternalUrl)
-        $JetInstance = $url.Host
+        $GatewayHostname = $url.Host
         $JetWebPort = $url.Port
         $JetWebScheme = $url.Scheme -Replace 'http', 'ws'
 
         if ($config.JetTcpPort -gt 0) {
             $JetTcpPort = $config.JetTcpPort
-            $JetListeners += "tcp://0.0.0.0:$JetTcpPort";
+            $GatewayListeners += "tcp://*:$JetTcpPort";
         }
 
-        $JetListeners = @()
-        $JetListeners += "tcp://0.0.0.0:$JetTcpPort";
-        $JetListeners += "ws://0.0.0.0:7171,${JetWebScheme}://<jet_instance>:${JetWebPort}"
+        $GatewayListeners = @()
+        $GatewayListeners += "tcp://*:${JetTcpPort},tcp://*:${JetTcpPort}";
+        $GatewayListeners += "ws://*:7171,${JetWebScheme}://*:${JetWebPort}"
 
-        $JetRelay = [DockerService]::new()
-        $JetRelay.ContainerName = 'devolutions-jet'
-        $JetRelay.Image = $images[$JetRelay.ContainerName]
-        $JetRelay.Platform = $Platform
-        $JetRelay.Isolation = $Isolation
-        $JetRelay.RestartPolicy = $RestartPolicy
-        $JetRelay.TargetPorts = @()
+        $DenGateway = [DockerService]::new()
+        $DenGateway.ContainerName = 'den-gateway'
+        $DenGateway.Image = $images[$DenGateway.ContainerName]
+        $DenGateway.Platform = $Platform
+        $DenGateway.Isolation = $Isolation
+        $DenGateway.RestartPolicy = $RestartPolicy
+        $DenGateway.TargetPorts = @()
 
         if ($JetTcpPort -gt 0) {
             # Register only TCP port to be published automatically
-            $JetRelay.TargetPorts += $JetTcpPort
-            $JetRelay.PublishAll = $true
+            $DenGateway.TargetPorts += $JetTcpPort
+            $DenGateway.PublishAll = $true
         }
 
-        foreach ($JetListener in $JetListeners) {
-            $ListenerUrl = ([string[]] $($JetListener -Split ','))[0]
+        foreach ($GatewayListener in $GatewayListeners) {
+            $ListenerUrl = ([string[]] $($GatewayListener -Split ','))[0]
+            $ListenerUrl = $ListenerUrl -Replace "://\*", "://0.0.0.0"
             $url = [System.Uri]::new($ListenerUrl)
             # Don't register non-TCP ports to avoid publishing them
-            #$JetRelay.TargetPorts += @($url.Port)
+            #$DenGateway.TargetPorts += @($url.Port)
         }
 
         if ($DenNetwork -NotMatch "none") {
-            $JetRelay.Networks += $DenNetwork
+            $DenGateway.Networks += $DenNetwork
         } else {
-            $JetRelay.PublishAll = $true
+            $DenGateway.PublishAll = $true
         }
 
-        $JetRelay.Environment = [ordered]@{
-            "JET_INSTANCE" = $JetInstance;
-            "JET_UNRESTRICTED" = "true";
+        $DenGateway.Environment = [ordered]@{
+            "DGATEWAY_UNRESTRICTED" = "true";
             "RUST_BACKTRACE" = "1";
             "RUST_LOG" = "info";
         }
-        $JetRelay.External = $false
+        $DenGateway.External = $false
 
-        $JetArgs = @()
-        foreach ($JetListener in $JetListeners) {
-            $JetArgs += @('-l', "`"$JetListener`"")
+        $GatewayArgs = @()
+        $GatewayArgs += @('--hostname', $GatewayHostname)
+        foreach ($GatewayListener in $GatewayListeners) {
+            $GatewayArgs += @('-l', "`"$GatewayListener`"")
         }
 
-        $JetRelay.Command = $($JetArgs -Join " ")
+        $DenGateway.Command = $($GatewayArgs -Join " ")
 
-        $Services += $JetRelay
+        $Services += $DenGateway
     }
 
     if ($config.SyslogServer) {

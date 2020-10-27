@@ -105,11 +105,11 @@ logLevel = "INFO"
 
     if (-Not $JetExternal) {
         $templates += '
-    [frontends.jet-relay]
+    [frontends.gateway]
     passHostHeader = true
-    backend = "jet-relay"
+    backend = "gateway"
     entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.jet-relay.routes.jet-relay]
+        [frontends.gateway.routes.gateway]
         rule = "PathPrefix:/jet"
 '
     }
@@ -142,9 +142,9 @@ logLevel = "INFO"
 
     if (-Not $JetExternal) {
             $templates += '
-    [backends.jet-relay]
-        [backends.jet-relay.servers.jet-relay]
-        url = "http://devolutions-jet:7171"
+    [backends.gateway]
+        [backends.gateway.servers.gateway]
+        url = "http://den-gateway:7171"
         weight = 10
         method="drr"
 '
