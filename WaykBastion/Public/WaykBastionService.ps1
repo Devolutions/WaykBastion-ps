@@ -27,7 +27,7 @@ function Get-WaykBastionImage
         [ordered]@{ # Linux containers
             "den-lucid" = "devolutions/den-lucid:${LucidVersion}-buster";
             "den-picky" = "devolutions/picky:${PickyVersion}-buster";
-            "den-server" = "devolutions/den-server:${ServerVersion}-buster-dev";
+            "den-server" = "devolutions/den-server:${ServerVersion}-buster";
 
             "den-mongo" = "library/mongo:${MongoVersion}-bionic";
             "den-traefik" = "library/traefik:${TraefikVersion}";
@@ -40,7 +40,7 @@ function Get-WaykBastionImage
         [ordered]@{ # Windows containers
             "den-lucid" = "devolutions/den-lucid:${LucidVersion}-servercore-ltsc2019";
             "den-picky" = "devolutions/picky:${PickyVersion}-servercore-ltsc2019";
-            "den-server" = "devolutions/den-server:${ServerVersion}-servercore-ltsc2019-dev";
+            "den-server" = "devolutions/den-server:${ServerVersion}-servercore-ltsc2019";
 
             "den-mongo" = "library/mongo:${MongoVersion}-windowsservercore-1809";
             "den-traefik" = "library/traefik:${TraefikVersion}-windowsservercore-1809";
