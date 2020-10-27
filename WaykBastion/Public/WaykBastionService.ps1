@@ -680,7 +680,7 @@ function Start-DockerService
     }
 }
 
-function Update-WaykBastion
+function Update-WaykBastionImage
 {
     [CmdletBinding()]
     param(
@@ -691,7 +691,6 @@ function Update-WaykBastion
     $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
     Expand-WaykBastionConfig -Config $config
 
-    $Platform = $config.DockerPlatform
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
 
     foreach ($service in $services) {
