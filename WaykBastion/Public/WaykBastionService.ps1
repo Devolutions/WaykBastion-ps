@@ -15,7 +15,7 @@ function Get-WaykBastionImage
 
     $LucidVersion = '3.9.0'
     $PickyVersion = '4.7.0'
-    $ServerVersion = '2.11.0'
+    $ServerVersion = '2.12.0'
 
     $MongoVersion = '4.2'
     $TraefikVersion = '1.7'
@@ -26,7 +26,7 @@ function Get-WaykBastionImage
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
-            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-buster-dev";
+            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-buster";
             "den-picky" = "devolutions/picky:${PickyVersion}-buster";
             "den-server" = "devolutions/den-server:${ServerVersion}-buster-dev";
 
@@ -39,7 +39,7 @@ function Get-WaykBastionImage
         }
     } else {
         [ordered]@{ # Windows containers
-            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-servercore-ltsc2019-dev";
+            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-servercore-ltsc2019";
             "den-picky" = "devolutions/picky:${PickyVersion}-servercore-ltsc2019";
             "den-server" = "devolutions/den-server:${ServerVersion}-servercore-ltsc2019-dev";
 
