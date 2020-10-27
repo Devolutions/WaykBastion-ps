@@ -2,9 +2,17 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2020.2.5 (2020-10-08)
+## 2020.3.0 (2020-10-27)
+  * Rebranding Wayk Den to Wayk Bastion
+  * Upgrade the authentication component
+  * Add a button to reset the white label in the web interface
+  * Fix an issue where machine registration state could be lost after certificate renewal
+  * Fix an issue where a session could not be opened with machine name if it was not lowercase
   * Fix Backup-WaykDenData/Restore-WaykDenData commands on Windows 
   * Fix handling of netstat wrapper when the command is not available
+
+## 2020.2.5 (2020-10-08)
+  * Fix an issue where machine registration state could be lost
 
 ## 2020.2.4 (2020-08-25)
   * Improve "All Servers" section to display machines by group
