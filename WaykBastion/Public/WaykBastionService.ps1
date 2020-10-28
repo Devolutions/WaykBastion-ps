@@ -34,7 +34,7 @@ function Get-WaykBastionImage
             "den-nats" = "library/nats:${NatsVersion}-linux";
             "den-redis" = "library/redis:${RedisVersion}-buster";
 
-            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-buster-dev";
+            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-buster";
         }
     } else {
         [ordered]@{ # Windows containers
@@ -47,7 +47,7 @@ function Get-WaykBastionImage
             "den-nats" = "library/nats:${NatsVersion}-windowsservercore-1809";
             "den-redis" = ""; # not available
 
-            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-servercore-ltsc2019-dev";
+            "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-servercore-ltsc2019";
         }
     }
 
