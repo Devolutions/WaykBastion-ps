@@ -2,6 +2,9 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## Last changes (unreleased)
+  * Change den-lucid log level to warn and log format to json
+
 ## 2020.3.0 (2020-10-27)
   * Rebranding Wayk Den to Wayk Bastion
   * Upgrade the authentication component
