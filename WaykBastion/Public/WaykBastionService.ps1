@@ -316,8 +316,10 @@ function Get-WaykBastionService
         "LUCID_LOGIN__ALLOW_FORGOT_PASSWORD" = "false";
         "LUCID_LOGIN__ALLOW_UNVERIFIED_EMAIL_LOGIN" = "true";
         "LUCID_LOGIN__PATH_PREFIX" = "lucid";
-        "LUCID_LOGIN__PASSWORD_DELEGATION" = "true"
+        "LUCID_LOGIN__PASSWORD_DELEGATION" = "true";
         "LUCID_LOGIN__DEFAULT_LOCALE" = "en_US";
+        "LUCID_LOG__LEVEL" = "warn";
+        "LUCID_LOG__FORMAT" = "json";
         "RUST_BACKTRACE" = $RustBacktrace;   
     }
 
