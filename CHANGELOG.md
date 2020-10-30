@@ -2,8 +2,9 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## Last changes (unreleased)
+## 2020.3.1 (2020)
   * Change den-lucid log level to warn and log format to json
+  * Fix broken Backup/Restore for MongoDB Windows containers
 
 ## 2020.3.0 (2020-10-27)
   * Rebranding Wayk Den to Wayk Bastion
