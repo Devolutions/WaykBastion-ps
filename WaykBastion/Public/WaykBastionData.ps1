@@ -50,7 +50,12 @@ function Backup-WaykBastionData
     # make sure parent output directory exists
     New-Item -Path $(Split-Path -Path $BackupPath) -ItemType "Directory" -Force | Out-Null
 
-    $MongoUrl = "mongodb://${ContainerName}:27017"
+    if (($config.DockerNetwork -Match "none") -and $config.DockerHost) {
+        $MongoUrl = "mongodb://$($config.DockerHost):27017"
+    } else {
+        $MongoUrl = "mongodb://${ContainerName}:27017"
+    }
+        
     $CmdArgs = @('docker', 'exec', $ContainerName, 'mongodump', '--gzip', `
         "--archive=${TempBackupPath}", '--uri', $MongoUrl)
     $cmd = $CmdArgs -Join " "
@@ -114,7 +119,12 @@ function Restore-WaykBastionData
     Write-Verbose $cmd
     Invoke-Expression $cmd
 
-    $MongoUrl = "mongodb://${ContainerName}:27017"
+    if (($config.DockerNetwork -Match "none") -and $config.DockerHost) {
+        $MongoUrl = "mongodb://$($config.DockerHost):27017"
+    } else {
+        $MongoUrl = "mongodb://${ContainerName}:27017"
+    }
+
     $CmdArgs = @('docker', 'exec', $ContainerName, 'mongorestore', '--drop', '--gzip', `
         "--archive=${TempBackupPath}", '--uri', $MongoUrl)
     $cmd = $CmdArgs -Join " "
