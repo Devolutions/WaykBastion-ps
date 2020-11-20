@@ -2,7 +2,12 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2020.3.1 (2020)
+## 2020.3.2 (2020-11-23)
+  * Improve the interface of Wayk web client
+  * Fix an issue where the server could be unresponsive
+  * Fix potential session connection failure when client and server clocks are not synchronized
+ 
+## 2020.3.1 (2020-10-30)
   * Change den-lucid log level to warn and log format to json
   * Fix broken Backup/Restore for MongoDB Windows containers
 
