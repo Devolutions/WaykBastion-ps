@@ -2,7 +2,7 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2020.3.2 (2020-11-23)
+## 2020.3.2 (2020-11-26)
   * Improve the interface of Wayk web client
   * Fix an issue where the server could be unresponsive
   * Fix potential session connection failure when client and server clocks are not synchronized
