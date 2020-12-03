@@ -2,6 +2,9 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2020.3.3 (2020-12-03)
+  * Fix IIS ARR websocket issue
+
 ## 2020.3.2 (2020-11-26)
   * Improve the interface of Wayk web client
   * Fix an issue where the server could be unresponsive
