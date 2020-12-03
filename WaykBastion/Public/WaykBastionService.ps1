@@ -21,7 +21,7 @@ function Get-WaykBastionImage
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
-    $GatewayVersion = '0.13.0'
+    $GatewayVersion = '0.14.0'
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
