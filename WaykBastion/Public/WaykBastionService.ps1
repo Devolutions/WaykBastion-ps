@@ -12,7 +12,7 @@ function Get-WaykBastionImage
 
     $Platform = $config.DockerPlatform
 
-    $LucidVersion = '3.9.0'
+    $LucidVersion = '3.9.1'
     $PickyVersion = '4.8.0'
     $ServerVersion = '2.13.0'
 
@@ -318,6 +318,7 @@ function Get-WaykBastionService
         "LUCID_LOGIN__PATH_PREFIX" = "lucid";
         "LUCID_LOGIN__PASSWORD_DELEGATION" = "true";
         "LUCID_LOGIN__DEFAULT_LOCALE" = "en_US";
+        "LUCID_LOGIN__SKIP_COMPLETE_PROFILE" = "true";
         "LUCID_LOG__LEVEL" = "warn";
         "LUCID_LOG__FORMAT" = "json";
         "RUST_BACKTRACE" = $RustBacktrace;   
