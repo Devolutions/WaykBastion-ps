@@ -14,7 +14,7 @@ function Get-WaykBastionImage
 
     $LucidVersion = '3.9.1'
     $PickyVersion = '4.8.0'
-    $ServerVersion = '2.13.0'
+    $ServerVersion = '2.13.1'
 
     $MongoVersion = '4.2'
     $TraefikVersion = '1.7'
