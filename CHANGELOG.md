@@ -2,6 +2,9 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2020.3.4 (2020-01-07)
+  * Fix an issue where user logged in Wayk Client was logged out every day
+
 ## 2020.3.3 (2020-12-03)
   * Fix IIS ARR websocket issue
 
