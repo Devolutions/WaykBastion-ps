@@ -12,9 +12,9 @@ function Get-WaykBastionImage
 
     $Platform = $config.DockerPlatform
 
-    $LucidVersion = '3.9.1'
+    $LucidVersion = '3.9.2'
     $PickyVersion = '4.8.0'
-    $ServerVersion = '2.13.1'
+    $ServerVersion = '3.0.0'
 
     $MongoVersion = '4.2'
     $TraefikVersion = '1.7'
