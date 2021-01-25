@@ -4,8 +4,8 @@ This document provides a list of notable changes introduced in Wayk Bastion by r
 
 ## 2021.1.0 (2021-01-25)
   * Add subscription/tenants/units/resource groups structure
-  * Add support to RDM Wayk Bastion datasource
-  * Web Client send unicode by default and an option `Enable Hardware Input Emulation` is available
+  * Add initial support for RDM Wayk Bastion data source
+  * Add option in Web Client to toggle between unicode input and hardware keyboard emulation
   * Fix an issue where JumpCloud and Active Directory account could not be used to log in
 
 ## 2020.3.4 (2021-01-07)
