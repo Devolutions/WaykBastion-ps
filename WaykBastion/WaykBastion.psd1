@@ -7,7 +7,7 @@
     RootModule = 'WaykBastion.psm1'
     
     # Version number of this module.
-    ModuleVersion = '2020.3.4'
+    ModuleVersion = '2021.1.0'
 
     # Supported PSEditions
     CompatiblePSEditions = 'Desktop', 'Core'

@@ -2,7 +2,13 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2020.3.4 (2020-01-07)
+## 2021.1.0 (2021-01-25)
+  * Add subscription/tenants/units/resource groups structure
+  * Add initial support for RDM Wayk Bastion data source
+  * Add option in Web Client to toggle between unicode input and hardware keyboard emulation
+  * Fix an issue where JumpCloud and Active Directory account could not be used to log in
+
+## 2020.3.4 (2021-01-07)
   * Fix an issue where user logged in Wayk Client was logged out every day
 
 ## 2020.3.3 (2020-12-03)
