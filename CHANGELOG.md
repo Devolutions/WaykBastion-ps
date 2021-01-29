@@ -2,6 +2,11 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2021.1.1 (2021-01-29)
+  * Fix login with Active Directory/JumpCloud account if password had changed
+  * Fix enrollment token renewal
+  * Add an option to show/hide license key
+
 ## 2021.1.0 (2021-01-25)
   * Add subscription/tenants/units/resource groups structure
   * Add initial support for RDM Wayk Bastion data source
