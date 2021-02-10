@@ -373,6 +373,10 @@ function Get-WaykBastionService
         $DenServer.Command += " -m cloud"
     }
 
+    if ($config.DenRouterKeepAliveInterval) {
+        $DenServer.Environment['DEN_ROUTER_KEEP_ALIVE_INTERVAL'] = $config.DenRouterKeepAliveInterval
+    }
+
     if ($config.DisableTelemetry) {
         $DenServer.Environment['DEN_DISABLE_TELEMETRY'] = 'true'
     }

@@ -15,6 +15,7 @@ class WaykBastionConfig
     [int] $ServerCount
     [string] $DenServerUrl
     [string] $DenRouterUrl
+    [int] $DenRouterKeepAliveInterval
     [string] $DenApiKey
     [bool] $DisableTelemetry = $false
     [bool] $ExperimentalFeatures = $false
@@ -450,6 +451,7 @@ function New-WaykBastionConfig
         [int] $ServerCount,
         [string] $DenServerUrl,
         [string] $DenRouterUrl,
+        [int] $DenRouterKeepAliveInterval,
         [string] $DenApiKey,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
@@ -569,6 +571,7 @@ function Set-WaykBastionConfig
         [int] $ServerCount,
         [string] $DenServerUrl,
         [string] $DenRouterUrl,
+        [int] $DenRouterKeepAliveInterval,
         [string] $DenApiKey,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
