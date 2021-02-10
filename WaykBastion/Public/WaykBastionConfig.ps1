@@ -37,17 +37,6 @@ class WaykBastionConfig
     [bool] $JetExternal = $false
     [string] $JetRelayImage
 
-    # LDAP
-    [string] $LdapServerUrl
-    [string] $LdapServerIp
-    [string] $LdapUsername
-    [string] $LdapPassword
-    [string] $LdapUserGroup
-    [string] $LdapServerType
-    [string] $LdapBaseDn
-    [string] $LdapBindType
-    [bool] $LdapCertificateValidation = $false
-
     # Picky
     [string] $PickyUrl
     [bool] $PickyExternal = $false
@@ -472,17 +461,6 @@ function New-WaykBastionConfig
         [bool] $JetExternal,
         [string] $JetRelayImage,
 
-        # LDAP
-        [string] $LdapServerUrl,
-        [string] $LdapServerIp,
-        [string] $LdapUsername,
-        [string] $LdapPassword,
-        [string] $LdapUserGroup,
-        [string] $LdapServerType,
-        [string] $LdapBaseDn,
-        [string] $LdapBindType,
-        [bool] $LdapCertificateValidation,
-
         # Picky
         [string] $PickyUrl,
         [bool] $PickyExternal,
@@ -590,17 +568,6 @@ function Set-WaykBastionConfig
         [int] $JetTcpPort,
         [bool] $JetExternal,
         [string] $JetRelayImage,
-
-        # LDAP
-        [string] $LdapServerUrl,
-        [string] $LdapServerIp,
-        [string] $LdapUsername,
-        [string] $LdapPassword,
-        [string] $LdapUserGroup,
-        [string] $LdapServerType,
-        [string] $LdapBaseDn,
-        [string] $LdapBindType,
-        [bool] $LdapCertificateValidation,
 
         # Picky
         [string] $PickyUrl,
