@@ -12,7 +12,7 @@ function Get-WaykBastionImage
 
     $Platform = $config.DockerPlatform
 
-    $LucidVersion = '3.9.3'
+    $LucidVersion = '3.9.4'
     $PickyVersion = '4.8.0'
     $ServerVersion = '3.1.0'
 
@@ -25,7 +25,7 @@ function Get-WaykBastionImage
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
-            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-buster";
+            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-buster-dev";
             "den-picky" = "devolutions/picky:${PickyVersion}-buster";
             "den-server" = "devolutions/den-server:${ServerVersion}-buster";
 
@@ -38,7 +38,7 @@ function Get-WaykBastionImage
         }
     } else {
         [ordered]@{ # Windows containers
-            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-servercore-ltsc2019";
+            "den-lucid" = "devolutions/den-lucid:${LucidVersion}-servercore-ltsc2019-dev";
             "den-picky" = "devolutions/picky:${PickyVersion}-servercore-ltsc2019";
             "den-server" = "devolutions/den-server:${ServerVersion}-servercore-ltsc2019";
 
@@ -151,8 +151,6 @@ function Get-WaykBastionService
 
     $DenApiKey = $config.DenApiKey
     $LucidApiKey = $config.LucidApiKey
-    $LucidAdminUsername = $config.LucidAdminUsername
-    $LucidAdminSecret = $config.LucidAdminSecret
 
     $PickyUrl = $config.PickyUrl
     $LucidUrl = $config.LucidUrl
@@ -299,8 +297,7 @@ function Get-WaykBastionService
         $DenLucid.PublishAll = $true
     }
     $DenLucid.Environment = [ordered]@{
-        "LUCID_ADMIN__SECRET" = $LucidAdminSecret;
-        "LUCID_ADMIN__USERNAME" = $LucidAdminUsername;
+        "LUCID_ADMIN__SKIP" = "true";
         "LUCID_API__KEY" = $LucidApiKey;
         "LUCID_DATABASE__URL" = $MongoUrl;
         "LUCID_TOKEN__DEFAULT_ISSUER" = "$ExternalUrl";

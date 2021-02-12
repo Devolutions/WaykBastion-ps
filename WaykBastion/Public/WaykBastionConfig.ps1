@@ -46,8 +46,6 @@ class WaykBastionConfig
     # Lucid
     [string] $LucidUrl
     [string] $LucidApiKey
-    [string] $LucidAdminUsername
-    [string] $LucidAdminSecret
     [bool] $LucidExternal = $false
     [string] $LucidImage
 
@@ -162,14 +160,6 @@ function Expand-WaykBastionConfigKeys
 
     if (-Not $config.LucidApiKey) {
         $config.LucidApiKey = New-RandomString -Length 32
-    }
-
-    if (-Not $config.LucidAdminUsername) {
-        $config.LucidAdminUsername = New-RandomString -Length 16
-    }
-
-    if (-Not $config.LucidAdminSecret) {
-        $config.LucidAdminSecret = New-RandomString -Length 10
     }
 }
 
@@ -471,8 +461,6 @@ function New-WaykBastionConfig
         # Lucid
         [string] $LucidUrl,
         [string] $LucidApiKey,
-        [string] $LucidAdminUsername,
-        [string] $LucidAdminSecret,
         [bool] $LucidExternal,
         [string] $LucidImage,
 
@@ -580,8 +568,6 @@ function Set-WaykBastionConfig
         # Lucid
         [string] $LucidUrl,
         [string] $LucidApiKey,
-        [string] $LucidAdminUsername,
-        [string] $LucidAdminSecret,
         [bool] $LucidExternal,
         [string] $LucidImage,
 
