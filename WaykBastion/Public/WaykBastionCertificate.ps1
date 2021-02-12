@@ -37,24 +37,3 @@ function Import-WaykBastionCertificate
     Set-Content -Path $TraefikPemFile -Value $CertificateData -Force
     Set-Content -Path $TraeficKeyFile -Value $PrivateKeyData -Force
 }
-
-function Import-WaykLdapCertificate
-{
-    [CmdletBinding()]
-    param(
-        [string] $ConfigPath,
-        [string] $CertificateFile
-    )
-
-    $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
-
-    $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
-
-    $CertificateData = Get-Content -Path $CertificateFile -Raw -ErrorAction Stop
-
-    $DenServerPath = Join-Path $ConfigPath "den-server"
-    New-Item -Path $DenServerPath -ItemType "Directory" -Force | Out-Null
-
-    $LdapRootCaFile = Join-Path $DenServerPath "ldap-root-ca.pem"
-    Set-Content -Path $LdapRootCaFile -Value $CertificateData -Force
-}

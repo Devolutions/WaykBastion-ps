@@ -67,7 +67,7 @@
     FunctionsToExport = @('New-WaykBastionConfig', 'Set-WaykBastionConfig',
         'Get-WaykBastionConfig', 'Clear-WaykBastionConfig', 'Remove-WaykBastionConfig',
         'Get-WaykBastionPath', 'Enter-WaykBastionConfig', 'Exit-WaykBastionConfig',
-        'Import-WaykBastionCertificate', 'Import-WaykLdapCertificate',
+        'Import-WaykBastionCertificate', 
         'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion',
         'Update-WaykBastionImage',
         'Register-WaykBastionService', 'Unregister-WaykBastionService',

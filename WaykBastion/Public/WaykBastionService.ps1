@@ -381,49 +381,6 @@ function Get-WaykBastionService
         $DenServer.Environment['WIP_EXPERIMENTAL_FEATURES'] = 'true'
     }
 
-    if (![string]::IsNullOrEmpty($config.LdapServerUrl)) {
-        $DenServer.Environment['LDAP_SERVER_URL'] = $config.LdapServerUrl
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapServerIp)) {
-        $DenServer.Environment['LDAP_SERVER_IP'] = $config.LdapServerIp
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapUsername)) {
-        $DenServer.Environment['LDAP_USERNAME'] = $config.LdapUsername
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapPassword)) {
-        $DenServer.Environment['LDAP_PASSWORD'] = $config.LdapPassword
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapUserGroup)) {
-        $DenServer.Environment['LDAP_USER_GROUP'] = $config.LdapUserGroup
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapServerType)) {
-        $DenServer.Environment['LDAP_SERVER_TYPE'] = $config.LdapServerType
-
-        if ($config.LdapCertificateValidation) {
-            $DenServer.Environment['LDAP_CERTIFICATE_VALIDATION'] = 'true'
-        } else {
-            $DenServer.Environment['LDAP_CERTIFICATE_VALIDATION'] = 'false'
-        }
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapBaseDn)) {
-        $DenServer.Environment['LDAP_BASE_DN'] = $config.LdapBaseDn
-    }
-
-    if (![string]::IsNullOrEmpty($config.LdapBindType)) {
-        $DenServer.Environment['LDAP_BIND_TYPE'] = $config.LdapBindType
-    }
-
-    if (Test-Path $(Join-Path $ConfigPath 'den-server/ldap-root-ca.pem')) {
-        $DenServer.Environment['LDAP_TRUSTED_ROOT_CA_FILE'] = `
-            @($DenServerDataPath, "ldap-root-ca.pem") -Join $PathSeparator
-    }
-
     if (![string]::IsNullOrEmpty($config.NatsUrl)) {
         $DenServer.Environment['NATS_HOST'] = $config.NatsUrl
     }
