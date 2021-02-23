@@ -5,6 +5,7 @@ This document provides a list of notable changes introduced in Wayk Bastion by r
 ## 2021.1.2 (unreleased)
   * Remove all LDAP parameters from the powershell module. Account provider can be configured via the web interface
   * Add a parameter `DenKeepAliveInterface` to configure the keep alive interval (websocket ping/pong interval)
+  * Add a warning to inform user that peer-to-peer sessions will be disabled if the external URL is not https
 
 ## 2021.1.1 (2021-01-29)
   * Fix login with Active Directory/JumpCloud account if password had changed
