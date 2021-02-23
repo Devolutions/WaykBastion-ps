@@ -312,6 +312,8 @@ function Test-WaykBastionConfig
 
         if (-Not (($url.Scheme -eq 'http') -Or ($url.Scheme -eq 'https'))) {
             Write-Warning "Invalid ExternalUrl: $($url.OriginalString) (should begin with 'http://' or 'https://')"
+        } elseif ($url.Scheme -ne 'https') {
+            Write-Warning "HTTPS is not configured for external access, peer-to-peer sessions will be disabled"
         }
     }
 }
