@@ -514,7 +514,11 @@ function New-WaykBastionConfig
     $properties = [WaykBastionConfig].GetProperties() | ForEach-Object { $_.Name }
     foreach ($param in $PSBoundParameters.GetEnumerator()) {
         if ($properties -Contains $param.Key) {
-            $config.($param.Key) = $param.Value
+            if ($param.Key -like "*Url") {
+                $config.($param.Key) = ConvertTo-NormalizedUrlString $param.Value
+            } else {
+                $config.($param.Key) = $param.Value
+            }
         }
     }
 
@@ -609,7 +613,11 @@ function Set-WaykBastionConfig
     $properties = [WaykBastionConfig].GetProperties() | ForEach-Object { $_.Name }
     foreach ($param in $PSBoundParameters.GetEnumerator()) {
         if ($properties -Contains $param.Key) {
-            $config.($param.Key) = $param.Value
+            if ($param.Key -like "*Url") {
+                $config.($param.Key) = ConvertTo-NormalizedUrlString $param.Value
+            } else {
+                $config.($param.Key) = $param.Value
+            }
         }
     }
 
@@ -773,4 +781,19 @@ function Remove-WaykBastionConfig
     Remove-Item -Path $(Join-Path $ConfigPath 'wayk-den.yml') -Force
     Remove-Item -Path $(Join-Path $ConfigPath 'den-server') -Recurse
     Remove-Item -Path $(Join-Path $ConfigPath 'traefik') -Recurse
+}
+
+function ConvertTo-NormalizedUrlString
+{
+    [OutputType('System.String')]
+    param(
+        [Parameter(Position=0)]
+        [string] $Value
+    )
+    if (-Not [string]::IsNullOrEmpty($Value)) {
+        $url = [System.Uri]::new($Value)
+        $start = $url.Scheme + "://" + $url.DnsSafeHost
+        $Value = $Value -IReplace $start, $start
+    }
+    $Value
 }
