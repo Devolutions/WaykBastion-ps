@@ -2,10 +2,21 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2021.1.2 (unreleased)
+## 2021.1.2 (2021-03-09)
+  * Add support for two factors authentication (2FA)
   * Remove all LDAP parameters from the powershell module. Account provider can be configured via the web interface
   * Add a parameter `DenKeepAliveInterface` to configure the keep alive interval (websocket ping/pong interval)
-  * Add a warning to inform user that peer-to-peer sessions will be disabled if the external URL is not https
+  * Add a warning on `Start-WaykBastion` command to inform user that peer-to-peer sessions will be disabled if the external URL is not https
+  * Fix an issue where the server was not working after a request /HEAD was received
+  * Add a label on machines
+  * Add a remaining count on licenses to know if a license can be assigned to another user
+  * Drag and drop support to organize tenants/units/groups/machines
+  * Fix the session list ordering
+  * An error report can be generated when something goes wrong on the web application
+  * White Label setting shows Wayk Agent interface
+  * Add a password generator to simplify user creation
+  * Show session protocol (wayk or powershell) in session information
+  * Fix an issue in Web Client where user was not able to interact in different situation where clipboard was involved
 
 ## 2021.1.1 (2021-01-29)
   * Fix login with Active Directory/JumpCloud account if password had changed
