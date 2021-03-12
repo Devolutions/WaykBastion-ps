@@ -665,6 +665,8 @@ function Start-WaykBastion
     [CmdletBinding()]
     param(
         [string] $ConfigPath,
+        [ValidateSet("Container","Process")]
+		[string] $LaunchType = "Container",
         [switch] $SkipPull
     )
 
@@ -673,7 +675,9 @@ function Start-WaykBastion
     Expand-WaykBastionConfig -Config $config
     Test-WaykBastionConfig -Config:$config
 
-    Test-DockerHost
+    if ($LaunchType -eq "Container") {
+        Test-DockerHost
+    }
 
     $Platform = $config.DockerPlatform
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
@@ -684,24 +688,108 @@ function Start-WaykBastion
     $HostInfo = Get-HostInfo -Platform:$Platform
     Export-HostInfo -ConfigPath:$ConfigPath -HostInfo $HostInfo
 
-    if (-Not $SkipPull) {
-        # pull docker images only if they are not cached locally
-        foreach ($service in $services) {
-            if (-Not (Get-ContainerImageId -Name $Service.Image)) {
-                Request-ContainerImage -Name $Service.Image
+    if ($LaunchType -eq "Container") {
+        if (-Not $SkipPull) {
+            # pull docker images only if they are not cached locally
+            foreach ($service in $services) {
+                if (-Not (Get-ContainerImageId -Name $Service.Image)) {
+                    Request-ContainerImage -Name $Service.Image
+                }
             }
         }
-    }
+    
+        # create docker network
+        New-DockerNetwork -Name $config.DockerNetwork -Platform $Platform -Force
+    
+        # create docker volume
+        New-DockerVolume -Name $config.MongoVolume -Force
+    
+        # start containers
+        foreach ($Service in $Services) {
+            Start-DockerService -Service $Service -Remove
+        }
+    } elseif ($LaunchType -eq "Process") {
+        Write-Warning "Starting Wayk Bastion processes"
 
-    # create docker network
-    New-DockerNetwork -Name $config.DockerNetwork -Platform $Platform -Force
+        $ExecutableNames = [ordered]@{
+            "den-lucid" = "lucid";
+            "den-picky" = "picky-server";
+            "den-server" = "den-server";
+            "den-mongo" = "mongod";
+            "den-traefik" = "traefik";
+            "den-gateway" = "DevolutionsGateway";
+        }
 
-    # create docker volume
-    New-DockerVolume -Name $config.MongoVolume -Force
+        $WaykBastionPath = "$Env:ProgramFiles\Devolutions\Wayk Bastion"
 
-    # start containers
-    foreach ($Service in $Services) {
-        Start-DockerService -Service $Service -Remove
+        foreach ($Service in $Services) {
+            $ExecutableName = $ExecutableNames[$Service.ContainerName]
+            $ExecutablePath = Join-Path $WaykBastionPath "$($Service.ContainerName)\$ExecutableName.exe"
+            $WorkingDirectory = Split-Path $ExecutablePath -Parent
+            $ArgumentList = $Service.Command
+
+            $LogOutputPath = "C:\wayk\logs"
+            New-Item -Path $LogOutputPath -ItemType "Directory" -Force | Out-Null
+            $StandardOutputFile = Join-Path $LogOutputPath "$($Service.ContainerName)-stdout.log"
+            $StandardErrorFile = Join-Path $LogOutputPath "$($Service.ContainerName)-stderr.log"
+
+            if (-Not (Test-Path $ExecutablePath)) {
+                Write-Warning "`"$ExecutablePath`" could not be found"
+            }
+
+            Write-Host "Starting $($Service.ContainerName)"
+
+            if ($Service.Environment) {
+                $Service.Environment.GetEnumerator() | ForEach-Object {
+                    $key = $_.Key
+                    $val = $_.Value
+
+                    if ($val) {
+                        if ($Service.ContainerName -eq 'den-server') {
+                            $val = $val.Replace("c:\den-server", "$ConfigPath\den-server")
+                        } elseif ($Service.ContainerName -eq 'den-picky') {
+                            $val = $val.Replace("c:\picky", "$ConfigPath\picky")
+                        } elseif ($Service.ContainerName -eq 'den-traefik') {
+                            $val = $val.Replace("c:\etc\traefik", "$ConfigPath\traefik")
+                        }
+
+                        New-Item Env:\$key -Value $val -Force | Out-Null
+                        Write-Host "$key=`"$val`""
+                    }
+                }
+            }
+
+            if ($Service.ContainerName -eq 'den-traefik') {
+                $TraefikConfigPath = "$ConfigPath\den-traefik"
+                $TraefikConfigFile = Join-Path $TraefikConfigPath "traefik.toml"
+                # FIXME: this doesn't work inside the script, but it works when launched manually
+                $ArgumentList = @("--file", "--configFile=$TraefikConfigFile", "-l", "debug")
+            }
+
+            if ($Service.ContainerName -eq 'den-mongo') {
+                $DbPath = "$ConfigPath\mongo\data"
+                New-Item -Path $DbPath -ItemType "Directory" -ErrorAction SilentlyContinue | Out-Null
+                $ArgumentList = "--dbpath=`"$DbPath`""
+            }
+
+            Write-Host "`"$ExecutablePath`""
+            Write-Host "$ArgumentList"
+
+            Start-Process -FilePath $ExecutablePath `
+                -WorkingDirectory $WorkingDirectory `
+                -ArgumentList $ArgumentList
+
+            if ($Service.Environment) {
+                $Service.Environment.GetEnumerator() | ForEach-Object {
+                    $key = $_.Key
+                    $val = $_.Value
+
+                    if ($val) {
+                        Remove-Item Env:\$key
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -719,21 +807,25 @@ function Stop-WaykBastion
 
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
 
-    # containers have to be stopped in the reverse order that we started them
-    [array]::Reverse($Services)
+    if ($LaunchType -eq "Container") {
+        # containers have to be stopped in the reverse order that we started them
+        [array]::Reverse($Services)
 
-    # stop containers
-    foreach ($Service in $Services) {
-        if ($Service.External) {
-            continue
+        # stop containers
+        foreach ($Service in $Services) {
+            if ($Service.External) {
+                continue
+            }
+
+            Write-Host "Stopping $($Service.ContainerName)"
+            Stop-Container -Name $Service.ContainerName -Quiet
+
+            if ($Remove) {
+                Remove-Container -Name $Service.ContainerName
+            }
         }
-
-        Write-Host "Stopping $($Service.ContainerName)"
-        Stop-Container -Name $Service.ContainerName -Quiet
-
-        if ($Remove) {
-            Remove-Container -Name $Service.ContainerName
-        }
+    } elseif ($LaunchType -eq "Process") {
+        Write-Warning "Stopping Wayk Bastion processes"
     }
 }
 
