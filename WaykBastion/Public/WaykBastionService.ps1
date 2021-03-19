@@ -156,6 +156,9 @@ function Get-WaykBastionService
     $LucidUrl = $config.LucidUrl
     $DenServerUrl = $config.DenServerUrl
 
+    $ServerLogLevel = $config.ServerLogLevel
+    $LucidLogLevel = $config.LucidLogLevel
+
     $RustBacktrace = "1"
 
     if ($Platform -eq "linux") {
@@ -316,7 +319,7 @@ function Get-WaykBastionService
         "LUCID_LOGIN__PASSWORD_DELEGATION" = "true";
         "LUCID_LOGIN__DEFAULT_LOCALE" = "en_US";
         "LUCID_LOGIN__SKIP_COMPLETE_PROFILE" = "true";
-        "LUCID_LOG__LEVEL" = "warn";
+        "LUCID_LOG__LEVEL" = $LucidLogLevel;
         "LUCID_LOG__FORMAT" = "json";
         "RUST_BACKTRACE" = $RustBacktrace;   
     }
@@ -360,7 +363,7 @@ function Get-WaykBastionService
         "RUST_BACKTRACE" = $RustBacktrace;
     }
     $DenServer.Volumes = @("$ConfigPath/den-server:$DenServerDataPath`:ro")
-    $DenServer.Command = "-l info"
+    $DenServer.Command = "-l $ServerLogLevel"
     $DenServer.Healthcheck = [DockerHealthcheck]::new("curl -sS $DenServerUrl/health")
 
     if ($config.ServerMode -eq 'Private') {
@@ -665,12 +668,25 @@ function Start-WaykBastion
     [CmdletBinding()]
     param(
         [string] $ConfigPath,
-        [switch] $SkipPull
+        [switch] $SkipPull,
+        [ValidateSet("", "off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
+        [ValidateSet("", "off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
     $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
     Expand-WaykBastionConfig -Config $config
+
+    if ($ServerLogLevel) {
+        $config.ServerLogLevel = $ServerLogLevel
+    }
+
+    if ($LucidLogLevel) {
+        $config.LucidLogLevel = $LucidLogLevel
+    }
+
     Test-WaykBastionConfig -Config:$config
 
     Test-DockerHost
@@ -741,12 +757,16 @@ function Restart-WaykBastion
 {
     [CmdletBinding()]
     param(
-        [string] $ConfigPath
+        [string] $ConfigPath,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
     Stop-WaykBastion -ConfigPath:$ConfigPath
-    Start-WaykBastion -ConfigPath:$ConfigPath
+    Start-WaykBastion -ConfigPath:$ConfigPath -ServerLogLevel:$ServerLogLevel -LucidLogLevel:$LucidLogLevel
 }
 
 function Get-WaykBastionServiceDefinition()
