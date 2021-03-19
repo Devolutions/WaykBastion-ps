@@ -668,12 +668,25 @@ function Start-WaykBastion
     [CmdletBinding()]
     param(
         [string] $ConfigPath,
-        [switch] $SkipPull
+        [switch] $SkipPull,
+        [ValidateSet("", "off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
+        [ValidateSet("", "off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
     $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
     Expand-WaykBastionConfig -Config $config
+
+    if ($ServerLogLevel) {
+        $config.ServerLogLevel = $ServerLogLevel
+    }
+
+    if ($LucidLogLevel) {
+        $config.LucidLogLevel = $LucidLogLevel
+    }
+
     Test-WaykBastionConfig -Config:$config
 
     Test-DockerHost
@@ -744,12 +757,16 @@ function Restart-WaykBastion
 {
     [CmdletBinding()]
     param(
-        [string] $ConfigPath
+        [string] $ConfigPath,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
     Stop-WaykBastion -ConfigPath:$ConfigPath
-    Start-WaykBastion -ConfigPath:$ConfigPath
+    Start-WaykBastion -ConfigPath:$ConfigPath -ServerLogLevel:$ServerLogLevel -LucidLogLevel:$LucidLogLevel
 }
 
 function Get-WaykBastionServiceDefinition()
