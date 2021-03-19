@@ -12,6 +12,7 @@ class WaykBastionConfig
     [string] $ExternalUrl
     [string] $ListenerUrl
     [string] $ServerMode
+    [string] $ServerLogLevel
     [int] $ServerCount
     [string] $DenServerUrl
     [string] $DenRouterUrl
@@ -48,6 +49,7 @@ class WaykBastionConfig
     [string] $LucidApiKey
     [bool] $LucidExternal = $false
     [string] $LucidImage
+    [string] $LucidLogLevel
 
     # NATS
     [string] $NatsUrl
@@ -210,6 +212,8 @@ function Expand-WaykBastionConfig
     $MongoUrlDefault = "mongodb://den-mongo:27017"
     $MongoVolumeDefault = "den-mongodata"
     $ServerModeDefault = "Private"
+    $ServerLogLevelDefault = "info"
+    $LucidLogLevelDefault = "warn"
     $ListenerUrlDefault = "http://0.0.0.0:4000"
     $JetRelayUrlDefault = "https://api.jet-relay.net"
     $PickyUrlDefault = "http://den-picky:12345"
@@ -243,6 +247,14 @@ function Expand-WaykBastionConfig
 
     if (-Not $config.ServerMode) {
         $config.ServerMode = $ServerModeDefault
+    }
+
+    if (-Not $config.ServerLogLevel) {
+        $config.ServerLogLevel = $ServerLogLevelDefault
+    }
+
+    if (-Not $config.LucidLogLevel) {
+        $config.LucidLogLevel = $LucidLogLevelDefault
     }
 
     if (-Not $config.ServerCount) {
@@ -429,6 +441,8 @@ function New-WaykBastionConfig
         [string] $ExternalUrl,
         [string] $ListenerUrl,
         [string] $ServerMode,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
         [int] $ServerCount,
         [string] $DenServerUrl,
         [string] $DenRouterUrl,
@@ -465,6 +479,9 @@ function New-WaykBastionConfig
         [string] $LucidApiKey,
         [bool] $LucidExternal,
         [string] $LucidImage,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel,
+
 
         # NATS
         [string] $NatsUrl,
@@ -540,6 +557,8 @@ function Set-WaykBastionConfig
         [string] $ExternalUrl,
         [string] $ListenerUrl,
         [string] $ServerMode,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $ServerLogLevel,
         [int] $ServerCount,
         [string] $DenServerUrl,
         [string] $DenRouterUrl,
@@ -576,6 +595,9 @@ function Set-WaykBastionConfig
         [string] $LucidApiKey,
         [bool] $LucidExternal,
         [string] $LucidImage,
+        [ValidateSet("off","error", "warn", "info", "debug", "trace", IgnoreCase = $false)]
+        [string] $LucidLogLevel,
+
 
         # NATS
         [string] $NatsUrl,

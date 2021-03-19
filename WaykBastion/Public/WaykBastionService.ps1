@@ -156,6 +156,9 @@ function Get-WaykBastionService
     $LucidUrl = $config.LucidUrl
     $DenServerUrl = $config.DenServerUrl
 
+    $ServerLogLevel = $config.ServerLogLevel
+    $LucidLogLevel = $config.LucidLogLevel
+
     $RustBacktrace = "1"
 
     if ($Platform -eq "linux") {
@@ -316,7 +319,7 @@ function Get-WaykBastionService
         "LUCID_LOGIN__PASSWORD_DELEGATION" = "true";
         "LUCID_LOGIN__DEFAULT_LOCALE" = "en_US";
         "LUCID_LOGIN__SKIP_COMPLETE_PROFILE" = "true";
-        "LUCID_LOG__LEVEL" = "warn";
+        "LUCID_LOG__LEVEL" = $LucidLogLevel;
         "LUCID_LOG__FORMAT" = "json";
         "RUST_BACKTRACE" = $RustBacktrace;   
     }
@@ -360,7 +363,7 @@ function Get-WaykBastionService
         "RUST_BACKTRACE" = $RustBacktrace;
     }
     $DenServer.Volumes = @("$ConfigPath/den-server:$DenServerDataPath`:ro")
-    $DenServer.Command = "-l info"
+    $DenServer.Command = "-l $ServerLogLevel"
     $DenServer.Healthcheck = [DockerHealthcheck]::new("curl -sS $DenServerUrl/health")
 
     if ($config.ServerMode -eq 'Private') {

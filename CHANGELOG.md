@@ -2,6 +2,9 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2021.1.3 (unreleased)
+  * Add parameters to set server/lucid log level
+
 ## 2021.1.2 (2021-03-09)
   * Add support for two-factor authentication (2FA)
   * Remove all LDAP parameters from the powershell module. Account provider can be configured via the web interface
