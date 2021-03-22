@@ -144,6 +144,25 @@ function Get-ContainerIsHealthy
     return $healthy -Match 'healthy'
 }
 
+function Export-ContainerLogs
+{
+    param(
+        [string] $Name,
+        [string] $FilePath
+    )
+
+    & 'docker' 'logs' $Name 2>&1 > $FilePath
+}
+
+function Export-ContainersState
+{
+    param(
+        [string] $FilePath
+    )
+
+    & 'docker' 'ps' '-a' > $FilePath
+}
+
 function Wait-ContainerHealthy
 {
     param(
