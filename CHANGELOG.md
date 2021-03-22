@@ -3,6 +3,7 @@
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
 ## 2021.1.3 (unreleased)
+  * New command `Export-WaykBastionLogs` to generate a zip file with all logs
   * Add parameters to set server/lucid log level
 
 ## 2021.1.2 (2021-03-09)
