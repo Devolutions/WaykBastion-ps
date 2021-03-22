@@ -151,10 +151,7 @@ function Export-ContainerLogs
         [string] $FilePath
     )
 
-    $CmdArgs = @('docker', 'logs', $Name, '>', $FilePath)
-    $cmd = $CmdArgs -Join " "
-    Write-Verbose $cmd
-    Invoke-Expression $cmd
+    & 'docker' 'logs' $Name 2>&1 > $FilePath
 }
 
 function Export-ContainersState
@@ -163,10 +160,7 @@ function Export-ContainersState
         [string] $FilePath
     )
 
-    $CmdArgs = @('docker', 'ps', '-a', '>', $FilePath)
-    $cmd = $CmdArgs -Join " "
-    Write-Verbose $cmd
-    Invoke-Expression $cmd
+    & 'docker' 'ps' '-a' > $FilePath
 }
 
 function Wait-ContainerHealthy

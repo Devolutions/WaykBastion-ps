@@ -15,11 +15,8 @@ function Export-WaykBastionLogs
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
     
     # Get temp folder to generate logs
-    if (Get-IsWindows) {
-        $TempPath = "C:\Windows\temp"
-    } else {
-        $TempPath = "/tmp"
-    }
+    $TempPath = Join-Path $([System.IO.Path]::GetTempPath()) $([System.Guid]::NewGuid())
+    New-Item -Path $TempPath -ItemType Directory -Force | Out-Null
 
     # Build the zip file path
     if (-Not $LogPath) {
@@ -37,7 +34,6 @@ function Export-WaykBastionLogs
     # Generate containers state
     $TempFilePath = Join-Path $TempPath "docker_ps.log"
     Export-ContainersState -FilePath $TempFilePath
-    $FilesToZip = @($TempFilePath)
 
     # Generate container log
     foreach ($Service in $Services) {
@@ -45,15 +41,12 @@ function Export-WaykBastionLogs
             $FileName = $Service.ContainerName + ".log"
             $TempFilePath = Join-Path $TempPath $FileName
             Export-ContainerLogs -Name $Service.ContainerName -FilePath $TempFilePath
-            $FilesToZip += $TempFilePath
         }
     }
 
     # Generate zip file
-    Compress-Archive -Path $FilesToZip -CompressionLevel "Optimal" -DestinationPath $LogFilePath
+    Compress-Archive -Path $(Join-Path $TempPath "*") -CompressionLevel "Optimal" -DestinationPath $LogFilePath
 
     # Clean temp folder
-    foreach ($File in $FilesToZip) {
-        Remove-Item $File
-    }   
+    Remove-Item -Path $TempPath -Recurse
 }
