@@ -144,6 +144,31 @@ function Get-ContainerIsHealthy
     return $healthy -Match 'healthy'
 }
 
+function Export-ContainerLogs
+{
+    param(
+        [string] $Name,
+        [string] $FilePath
+    )
+
+    $CmdArgs = @('docker', 'logs', $Name, '>', $FilePath)
+    $cmd = $CmdArgs -Join " "
+    Write-Verbose $cmd
+    Invoke-Expression $cmd
+}
+
+function Export-ContainersState
+{
+    param(
+        [string] $FilePath
+    )
+
+    $CmdArgs = @('docker', 'ps', '-a', '>', $FilePath)
+    $cmd = $CmdArgs -Join " "
+    Write-Verbose $cmd
+    Invoke-Expression $cmd
+}
+
 function Wait-ContainerHealthy
 {
     param(
