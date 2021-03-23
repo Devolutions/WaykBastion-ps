@@ -377,6 +377,10 @@ function Get-WaykBastionService
         $DenServer.Environment['DEN_ROUTER_KEEP_ALIVE_INTERVAL'] = $config.DenKeepAliveInterval
     }
 
+    if ($config.DisableCors) {
+        $DenServer.Environment['DEN_DISABLE_CORS'] = 'true'
+    }
+
     if ($config.DisableTelemetry) {
         $DenServer.Environment['DEN_DISABLE_TELEMETRY'] = 'true'
     }

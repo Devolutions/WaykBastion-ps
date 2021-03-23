@@ -18,6 +18,7 @@ class WaykBastionConfig
     [string] $DenRouterUrl
     [int] $DenKeepAliveInterval
     [string] $DenApiKey
+    [bool] $DisableCors = $false
     [bool] $DisableTelemetry = $false
     [bool] $ExperimentalFeatures = $false
     [bool] $ServerExternal = $false
@@ -328,6 +329,10 @@ function Test-WaykBastionConfig
             Write-Warning "HTTPS is not configured for external access, peer-to-peer sessions will be disabled"
         }
     }
+
+    if ($config.DisableCors) {
+        Write-Warning "Disabling CORS could be a security issue. It should be disabled only for development purposes"
+    }
 }
 
 function Export-TraefikToml()
@@ -448,6 +453,7 @@ function New-WaykBastionConfig
         [string] $DenRouterUrl,
         [int] $DenKeepAliveInterval,
         [string] $DenApiKey,
+        [bool] $DisableCors,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
         [bool] $ServerExternal,
@@ -564,6 +570,7 @@ function Set-WaykBastionConfig
         [string] $DenRouterUrl,
         [int] $DenKeepAliveInterval,
         [string] $DenApiKey,
+        [bool] $DisableCors,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
         [bool] $ServerExternal,
