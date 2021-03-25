@@ -21,7 +21,7 @@ function Get-WaykBastionImage
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
-    $GatewayVersion = '0.14.0'
+    $GatewayVersion = '2021.1.0'
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
@@ -146,7 +146,6 @@ function Get-WaykBastionService
     $MongoVolume = $config.MongoVolume
     $DenNetwork = $config.DockerNetwork
 
-    $JetServerUrl = $config.JetServerUrl
     $JetRelayUrl = $config.JetRelayUrl
 
     $DenApiKey = $config.DenApiKey
@@ -167,12 +166,14 @@ function Get-WaykBastionService
         $TraefikDataPath = "/etc/traefik"
         $DenServerDataPath = "/etc/den-server"
         $PickyDataPath = "/etc/picky"
+        $GatewayDataPath = "/etc/gateway"
     } else {
         $PathSeparator = "\"
         $MongoDataPath = "c:\data\db"
         $TraefikDataPath = "c:\etc\traefik"
         $DenServerDataPath = "c:\den-server"
         $PickyDataPath = "c:\picky"
+        $GatewayDataPath = "c:\gateway"
     }
 
     $ServerCount = 1
@@ -357,7 +358,6 @@ function Get-WaykBastionService
         "DEN_PUBLIC_KEY_FILE" = @($DenServerDataPath, "den-public.pem") -Join $PathSeparator
         "DEN_PRIVATE_KEY_FILE" = @($DenServerDataPath, "den-private.key") -Join $PathSeparator
         "DEN_HOST_INFO_FILE" = @($DenServerDataPath, "host_info.json") -Join $PathSeparator
-        "JET_SERVER_URL" = $JetServerUrl;
         "JET_RELAY_URL" = $JetRelayUrl;
         "DEN_API_KEY" = $DenApiKey;
         "RUST_BACKTRACE" = $RustBacktrace;
@@ -442,20 +442,6 @@ function Get-WaykBastionService
 
     # den-gateway service
     if (-Not $config.JetExternal) {
-        $url = [System.Uri]::new($config.ExternalUrl)
-        $GatewayHostname = $url.Host
-        $JetWebPort = $url.Port
-        $JetWebScheme = $url.Scheme -Replace 'http', 'ws'
-
-        if ($config.JetTcpPort -gt 0) {
-            $JetTcpPort = $config.JetTcpPort
-            $GatewayListeners += "tcp://*:$JetTcpPort";
-        }
-
-        $GatewayListeners = @()
-        $GatewayListeners += "tcp://*:${JetTcpPort},tcp://*:${JetTcpPort}";
-        $GatewayListeners += "ws://*:7171,${JetWebScheme}://*:${JetWebPort}"
-
         $DenGateway = [DockerService]::new()
         $DenGateway.ContainerName = 'den-gateway'
         $DenGateway.Image = $images[$DenGateway.ContainerName]
@@ -464,18 +450,10 @@ function Get-WaykBastionService
         $DenGateway.RestartPolicy = $RestartPolicy
         $DenGateway.TargetPorts = @()
 
-        if ($JetTcpPort -gt 0) {
-            # Register only TCP port to be published automatically
-            $DenGateway.TargetPorts += $JetTcpPort
+        if ($config.JetTcpPort -gt 0) {
+            # Register only the TCP port to be published automatically
+            $DenGateway.TargetPorts += $config.JetTcpPort
             $DenGateway.PublishAll = $true
-        }
-
-        foreach ($GatewayListener in $GatewayListeners) {
-            $ListenerUrl = ([string[]] $($GatewayListener -Split ','))[0]
-            $ListenerUrl = $ListenerUrl -Replace "://\*", "://0.0.0.0"
-            $url = [System.Uri]::new($ListenerUrl)
-            # Don't register non-TCP ports to avoid publishing them
-            #$DenGateway.TargetPorts += @($url.Port)
         }
 
         if ($DenNetwork -NotMatch "none") {
@@ -485,19 +463,12 @@ function Get-WaykBastionService
         }
 
         $DenGateway.Environment = [ordered]@{
-            "DGATEWAY_UNRESTRICTED" = "true";
+            "DGATEWAY_CONFIG_PATH" = $GatewayDataPath
             "RUST_BACKTRACE" = "1";
             "RUST_LOG" = "info";
         }
+        $DenGateway.Volumes = @("$ConfigPath/den-gateway:$GatewayDataPath`:rw")
         $DenGateway.External = $false
-
-        $GatewayArgs = @()
-        $GatewayArgs += @('--hostname', $GatewayHostname)
-        foreach ($GatewayListener in $GatewayListeners) {
-            $GatewayArgs += @('-l', "`"$GatewayListener`"")
-        }
-
-        $DenGateway.Command = $($GatewayArgs -Join " ")
 
         $Services += $DenGateway
     }
@@ -700,6 +671,7 @@ function Start-WaykBastion
 
     Export-TraefikToml -ConfigPath:$ConfigPath
     Export-PickyConfig -ConfigPath:$ConfigPath
+    Export-GatewayConfig -ConfigPath:$ConfigPath
 
     $HostInfo = Get-HostInfo -Platform:$Platform
     Export-HostInfo -ConfigPath:$ConfigPath -HostInfo $HostInfo

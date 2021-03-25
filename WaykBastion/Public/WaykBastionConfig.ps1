@@ -383,6 +383,64 @@ function Export-PickyConfig()
     Copy-Item -Path $DenServerPublicKey -Destination $PickyPublicKey -Force
 }
 
+function Export-GatewayConfig()
+{
+    param(
+        [string] $ConfigPath
+    )
+
+    if ($config.JetExternal) {
+        return
+    }
+
+    $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
+
+    $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
+    Expand-WaykBastionConfig $config
+
+    $GatewayPath = Join-Path $ConfigPath "den-gateway"
+    New-Item -Path $GatewayPath -ItemType "Directory" -Force | Out-Null
+
+    $DenServerPath = Join-Path $ConfigPath "den-server"
+    $DenServerPublicKey = Join-Path $DenServerPath "den-public.pem"
+
+    $ProvisionerPublicKey = Join-Path $GatewayPath "provisioner.pem"
+    Copy-Item -Path $DenServerPublicKey -Destination $ProvisionerPublicKey -Force
+
+    $url = [System.Uri]::new($config.ExternalUrl)
+    $GatewayHostname = $url.Host
+    $JetWebPort = $url.Port
+    $JetWebScheme = $url.Scheme -Replace 'http', 'ws'
+
+    $GatewayListeners = @()
+
+    if ($config.JetTcpPort -gt 0) {
+        $JetTcpPort = $config.JetTcpPort
+
+        $GatewayListeners += [PSCustomObject]@{
+            InternalUrl = "tcp://*:${JetTcpPort}";
+            ExternalUrl = "tcp://*:${JetTcpPort}";
+        }
+    }
+
+    $GatewayListeners += [PSCustomObject]@{
+        InternalUrl = "ws://*:7171";
+        ExternalUrl = "${JetWebScheme}://*:${JetWebPort}";
+    }
+
+    $GatewayConfig = [PSCustomObject]@{
+        Hostname = $GatewayHostname
+        Listeners = $GatewayListeners
+        ProvisionerPublicKeyFile = "provisioner.pem"
+    }
+
+    $ConfigData = $GatewayConfig | ConvertTo-Json -Depth 8
+    $AsByteStream = if ($PSEdition -eq 'Core') { @{AsByteStream = $true} } else { @{'Encoding' = 'Byte'} }
+    $ConfigBytes = $([System.Text.Encoding]::UTF8).GetBytes($ConfigData)
+    $ConfigFile = Join-Path $GatewayPath "gateway.json"
+    Set-Content -Path $ConfigFile -Value $ConfigBytes @AsByteStream -Force
+}
+
 function Export-HostInfo()
 {
     param(
