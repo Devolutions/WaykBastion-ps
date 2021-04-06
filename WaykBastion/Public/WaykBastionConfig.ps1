@@ -19,6 +19,7 @@ class WaykBastionConfig
     [int] $DenKeepAliveInterval
     [string] $DenApiKey
     [bool] $DisableCors = $false
+    [bool] $DisableDbSchemaValidation = $false
     [bool] $DisableTelemetry = $false
     [bool] $ExperimentalFeatures = $false
     [bool] $ServerExternal = $false
@@ -333,6 +334,10 @@ function Test-WaykBastionConfig
     if ($config.DisableCors) {
         Write-Warning "Disabling CORS could be a security issue. It should be disabled only for development purposes"
     }
+
+    if ($config.DisableDbSchemaValidation) {
+        Write-Warning "Disabling database schema version validation could create situations where database would be corrupted. It should be disabled only if you know what you are doing."
+    }
 }
 
 function Export-TraefikToml()
@@ -512,6 +517,7 @@ function New-WaykBastionConfig
         [int] $DenKeepAliveInterval,
         [string] $DenApiKey,
         [bool] $DisableCors,
+        [bool] $DisableDbSchemaValidation,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
         [bool] $ServerExternal,
@@ -629,6 +635,7 @@ function Set-WaykBastionConfig
         [int] $DenKeepAliveInterval,
         [string] $DenApiKey,
         [bool] $DisableCors,
+        [bool] $DisableDbSchemaValidation,
         [bool] $DisableTelemetry,
         [bool] $ExperimentalFeatures,
         [bool] $ServerExternal,
