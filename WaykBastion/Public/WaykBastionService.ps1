@@ -381,6 +381,10 @@ function Get-WaykBastionService
         $DenServer.Environment['DEN_DISABLE_CORS'] = 'true'
     }
 
+    if ($config.DisableDbSchemaValidation) {
+        $DenServer.Environment['DEN_DISABLE_DB_SCHEMA_VALIDATION'] = 'true'
+    }
+
     if ($config.DisableTelemetry) {
         $DenServer.Environment['DEN_DISABLE_TELEMETRY'] = 'true'
     }
