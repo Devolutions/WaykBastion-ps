@@ -31,6 +31,11 @@ function Export-WaykBastionLogs
         $LogFilePath = $LogPath
     }
 
+    # Save server configuration
+    $TempFilePath = Join-Path $TempPath "WaykBastion.cfg"
+    Remove-WaykBastionConfigSensitiveData $config
+    $config | Out-File $TempFilePath
+    
     # Generate containers state
     $TempFilePath = Join-Path $TempPath "docker_ps.log"
     Export-ContainersState -FilePath $TempFilePath

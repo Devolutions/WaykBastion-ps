@@ -307,6 +307,35 @@ function Expand-WaykBastionConfig
     Expand-WaykBastionConfigImage -Config:$Config
 }
 
+function Remove-WaykBastionConfigSensitiveData
+{
+    param(
+        [WaykBastionConfig] $Config
+    )
+
+    $HiddenValue = "***Hidden value***"
+
+    if ($config.DenApiKey) {
+        $config.DenApiKey = $HiddenValue
+    }
+
+    if ($config.LucidApiKey) {
+        $config.LucidApiKey = $HiddenValue
+    }
+
+    if ($config.NatsUsername) {
+        $config.NatsUsername = $HiddenValue
+    }
+
+    if ($config.NatsPassword) {
+        $config.NatsPassword = $HiddenValue
+    }
+
+    if ($config.RedisPassword) {
+        $config.RedisPassword = $HiddenValue
+    }
+}
+
 function Test-WaykBastionConfig
 {
     param(
@@ -729,7 +758,8 @@ function Get-WaykBastionConfig
     param(
         [string] $ConfigPath,
         [switch] $Expand,
-        [switch] $NonDefault
+        [switch] $NonDefault,
+        [switch] $RemoveSensitiveData
     )
 
     $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
@@ -790,6 +820,10 @@ function Get-WaykBastionConfig
     if ($NonDefault) {
         # remove default properties from object
         $config = Remove-DefaultProperties $config $([WaykBastionConfig]::new())
+    }
+
+    if ($RemoveSensitiveData) {
+        Remove-WaykBastionConfigSensitiveData $config
     }
 
     return $config
