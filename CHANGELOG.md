@@ -2,10 +2,16 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
-## 2021.1.3 (unreleased)
+## 2021.1.3 (2021-04-07)
   * New command `Export-WaykBastionLogs` to generate a zip file with all logs
-  * Add parameters to set server/lucid log level
-
+  * New parameters, `ServerLogLevel` and `LucidLogLevel`, to set server/lucid log level
+  * Improve RDM Wayk Bastion dashboard to list user's machines
+  * Improve AD/JumpCloud users synchronization
+  * Improve machines tree in web interface to keep its state
+  * Fix an issue where peer identities were not removed from the cache
+  * Fix an issue where the user name was not updated with given name and family name
+  * Fix an issue where user synchronization was failing if a user had accent characters
+  
 ## 2021.1.2 (2021-03-09)
   * Add support for two-factor authentication (2FA)
   * Remove all LDAP parameters from the powershell module. Account provider can be configured via the web interface
