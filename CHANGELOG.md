@@ -2,6 +2,10 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2021.1.4 (2021-04-13)
+  * Fix an issue where no Wayk session was possible at some point and Wayk Bastion had to be restarted
+  * Fix an issue where Devolutions Gateway was using 100% CPU
+
 ## 2021.1.3 (2021-04-07)
   * New command `Export-WaykBastionLogs` to generate a zip file with all logs
   * New parameters, `ServerLogLevel` and `LucidLogLevel`, to set server/lucid log level
