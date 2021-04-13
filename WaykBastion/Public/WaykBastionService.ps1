@@ -14,14 +14,14 @@ function Get-WaykBastionImage
 
     $LucidVersion = '3.9.5'
     $PickyVersion = '4.8.0'
-    $ServerVersion = '3.4.0'
+    $ServerVersion = '3.5.0'
 
     $MongoVersion = '4.2'
     $TraefikVersion = '1.7'
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
-    $GatewayVersion = '2021.1.2'
+    $GatewayVersion = '2021.1.3'
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
