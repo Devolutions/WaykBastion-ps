@@ -296,9 +296,8 @@ function Expand-WaykBastionConfig
             $config.JetRelayUrl = $JetRelayUrlDefault
         }
     } else {
-        if (-Not $config.JetRelayUrl) {
-            $config.JetRelayUrl = $config.ExternalUrl
-        }
+        $config.JetRelayUrl = $config.ExternalUrl
+        
         if (-Not $config.JetTcpPort) {
             $config.JetTcpPort = 8080
         }
