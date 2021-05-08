@@ -69,7 +69,7 @@
         'Get-WaykBastionPath', 'Enter-WaykBastionConfig', 'Exit-WaykBastionConfig',
         'Import-WaykBastionCertificate', 
         'Start-WaykBastion', 'Stop-WaykBastion', 'Restart-WaykBastion',
-        'Update-WaykBastionImage',
+        'Get-WaykBastionImage', 'Update-WaykBastionImage',
         'Register-WaykBastionService', 'Unregister-WaykBastionService',
         'Backup-WaykBastionData', 'Restore-WaykBastionData',
         'Export-WaykBastionLogs')
