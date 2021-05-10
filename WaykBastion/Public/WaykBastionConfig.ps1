@@ -72,6 +72,7 @@ class WaykBastionConfig
     [string] $DockerIsolation
     [string] $DockerRestartPolicy
     [string] $DockerHost
+    [string] $DockerBaseImage
     [string] $SyslogServer
 }
 
@@ -603,6 +604,7 @@ function New-WaykBastionConfig
         [ValidateSet("no","on-failure","always","unless-stopped")]
         [string] $DockerRestartPolicy,
         [string] $DockerHost,
+        [string] $DockerBaseImage,
         [string] $SyslogServer,
 
         [switch] $Force
@@ -721,6 +723,7 @@ function Set-WaykBastionConfig
         [ValidateSet("no","on-failure","always","unless-stopped")]
         [string] $DockerRestartPolicy,
         [string] $DockerHost,
+        [string] $DockerBaseImage,
         [string] $SyslogServer,
 
         [switch] $Force

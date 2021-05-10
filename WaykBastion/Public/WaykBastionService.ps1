@@ -7,10 +7,25 @@
 function Get-WaykBastionImage
 {
     param(
-        [WaykBastionConfig] $Config
+        [WaykBastionConfig] $Config,
+        [ValidateSet("linux", "windows")]
+        [string] $Platform,
+        [string] $BaseImage,
+        [switch] $IncludeAll
     )
 
-    $Platform = $config.DockerPlatform
+    if (-Not $config) {
+        $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
+        $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
+    }
+
+    if (-Not $Platform) {
+        $Platform = $config.DockerPlatform
+    }
+
+    if (-Not $BaseImage) {
+        $BaseImage = $config.DockerBaseImage
+    }
 
     $LucidVersion = '3.9.5'
     $PickyVersion = '4.8.0'
@@ -21,7 +36,7 @@ function Get-WaykBastionImage
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
-    $GatewayVersion = '2021.1.3'
+    $GatewayVersion = '2021.1.4'
 
     $images = if ($Platform -ne "windows") {
         [ordered]@{ # Linux containers
@@ -45,10 +60,18 @@ function Get-WaykBastionImage
             "den-mongo" = "library/mongo:${MongoVersion}-windowsservercore-1809";
             "den-traefik" = "library/traefik:${TraefikVersion}-windowsservercore-1809";
             "den-nats" = "library/nats:${NatsVersion}-windowsservercore-1809";
-            "den-redis" = ""; # not available
+            "den-redis" = ""; # not available on Windows
 
             "den-gateway" = "devolutions/devolutions-gateway:${GatewayVersion}-servercore-ltsc2019";
         }
+    }
+
+    if (($Platform -eq "windows") -and ($BaseImage -Match 'nanoserver')) {
+        @('den-lucid','den-picky','den-server','den-gateway') | ForEach-Object {
+            $images[$_] = $images[$_] -Replace "servercore-ltsc2019", "nanoserver-1809"
+        }
+        $images['den-traefik'] = "library/traefik:${TraefikVersion}-nanoserver";
+        $images['den-nats'] = "library/nats:${NatsVersion}-nanoserver";
     }
 
     if ($config.LucidImage) {
@@ -83,6 +106,26 @@ function Get-WaykBastionImage
         $images['den-gateway'] = $config.JetRelayImage
     }
 
+    if (-Not $IncludeAll) {
+        if ($config.MongoExternal) {
+            $images.Remove('den-mongo')
+        }
+
+        if ($config.JetExternal) {
+            $images.Remove('den-gateway')
+        }
+
+        $ServerCount = 1
+        if ([int] $config.ServerCount -gt 1) {
+            $ServerCount = [int] $config.ServerCount
+        }
+
+        if (-Not (($config.ServerMode -eq 'Public') -or ($ServerCount -gt 1))) {
+            $images.Remove('den-nats')
+            $images.Remove('den-redis')
+        }
+    }
+
     return $images
 }
 
@@ -98,7 +141,7 @@ function Get-HostInfo()
     $DockerPlatform = $config.DockerPlatform
     $OsVersionInfo = Get-OsVersionInfo
 
-    $images = Get-WaykBastionImage -Config:$Config
+    $images = Get-WaykBastionImage -Config:$Config -IncludeAll
     $DenServerImage = $images['den-server']
     $DenPickyImage = $images['den-picky']
     $DenLucidImage = $images['den-lucid']
@@ -132,7 +175,7 @@ function Get-WaykBastionService
     $Platform = $config.DockerPlatform
     $Isolation = $config.DockerIsolation
     $RestartPolicy = $config.DockerRestartPolicy
-    $images = Get-WaykBastionImage -Config:$Config
+    $images = Get-WaykBastionImage -Config:$Config -IncludeAll
 
     $Realm = $config.Realm
     $ExternalUrl = $config.ExternalUrl
@@ -635,10 +678,10 @@ function Update-WaykBastionImage
     $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
     Expand-WaykBastionConfig -Config $config
 
-    $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
+    $Images = Get-WaykBastionImage -Config $Config
 
-    foreach ($service in $services) {
-        Request-ContainerImage -Name $Service.Image
+    foreach ($image in $images.Values) {
+        Request-ContainerImage -Name $image
     }
 }
 
