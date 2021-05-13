@@ -6,6 +6,7 @@
 
 function Get-WaykBastionImage
 {
+    [CmdletBinding()]
     param(
         [WaykBastionConfig] $Config,
         [ValidateSet("linux", "windows")]
@@ -20,7 +21,15 @@ function Get-WaykBastionImage
     }
 
     if (-Not $Platform) {
-        $Platform = $config.DockerPlatform
+        if ($config.DockerPlatform) {
+            $Platform = $config.DockerPlatform
+        } else {
+            if (Get-IsWindows) {
+                $Platform = "windows"
+            } else {
+                $Platform = "linux"
+            }
+        }
     }
 
     if (-Not $BaseImage) {
@@ -720,7 +729,7 @@ function Start-WaykBastion
     Export-PickyConfig -ConfigPath:$ConfigPath
     Export-GatewayConfig -ConfigPath:$ConfigPath
 
-    $HostInfo = Get-HostInfo -Platform:$Platform
+    $HostInfo = Get-HostInfo -Platform:$Platform -Config:$config
     Export-HostInfo -ConfigPath:$ConfigPath -HostInfo $HostInfo
 
     if (-Not $SkipPull) {
