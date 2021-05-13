@@ -21,7 +21,7 @@ function Get-WaykBastionImage
     }
 
     if (-Not $Platform) {
-        if ($config.Platform) {
+        if ($config.DockerPlatform) {
             $Platform = $config.DockerPlatform
         } else {
             if (Get-IsWindows) {
