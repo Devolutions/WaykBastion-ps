@@ -6,6 +6,7 @@
 
 function Get-WaykBastionImage
 {
+    [CmdletBinding()]
     param(
         [WaykBastionConfig] $Config,
         [ValidateSet("linux", "windows")]
@@ -17,11 +18,18 @@ function Get-WaykBastionImage
     if (-Not $config) {
         $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
         $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
-        Expand-WaykBastionConfig -Config:$config
     }
 
     if (-Not $Platform) {
-        $Platform = $config.DockerPlatform
+        if ($config.Platform) {
+            $Platform = $config.DockerPlatform
+        } else {
+            if (Get-IsWindows) {
+                $Platform = "windows"
+            } else {
+                $Platform = "linux"
+            }
+        }
     }
 
     if (-Not $BaseImage) {
