@@ -720,7 +720,7 @@ function Start-WaykBastion
     Export-PickyConfig -ConfigPath:$ConfigPath
     Export-GatewayConfig -ConfigPath:$ConfigPath
 
-    $HostInfo = Get-HostInfo -Platform:$Platform
+    $HostInfo = Get-HostInfo -Platform:$Platform -Config:$config
     Export-HostInfo -ConfigPath:$ConfigPath -HostInfo $HostInfo
 
     if (-Not $SkipPull) {
