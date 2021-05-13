@@ -2,6 +2,13 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2021.1.5 (2021-05-13)
+  * Improve user interface to simplify how user groups are managed
+  * New role: `Technician`. It has all permissions on machines plus permission to list machine` sessions
+  * Fix an issue where different operations around users were failing randomly
+  * Fix an issue where RDP/PowerShell sessions were never flagged as terminated.
+  * Fix column sorting in web interface client view
+  
 ## 2021.1.4 (2021-04-13)
   * Fix an issue where no Wayk session was possible at some point and Wayk Bastion had to be restarted
   * Fix an issue where Devolutions Gateway was using 100% CPU
