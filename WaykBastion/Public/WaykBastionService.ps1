@@ -17,6 +17,7 @@ function Get-WaykBastionImage
     if (-Not $config) {
         $ConfigPath = Find-WaykBastionConfig -ConfigPath:$ConfigPath
         $config = Get-WaykBastionConfig -ConfigPath:$ConfigPath
+        Expand-WaykBastionConfig -Config:$config
     }
 
     if (-Not $Platform) {
