@@ -41,7 +41,7 @@ function Get-WaykBastionImage
     $ServerVersion = '3.6.0'
 
     $MongoVersion = '4.2'
-    $TraefikVersion = '1.7'
+    $TraefikVersion = '2.4'
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
@@ -491,8 +491,12 @@ function Get-WaykBastionService
         $DenTraefik.Networks += $DenNetwork
     }
     $DenTraefik.PublishAll = $true
+    $TraefikConfigFile = @($TraefikDataPath, "traefik.yaml") -Join $PathSeparator
+    $DenTraefik.Environment = [ordered]@{
+        "TRAEFIK_LOG_LEVEL" = "WARN";
+        "TRAEFIK_PROVIDERS_FILE_FILENAME" = $TraefikConfigFile;
+    }
     $DenTraefik.Volumes = @("$ConfigPath/traefik:$TraefikDataPath")
-    $DenTraefik.Command = ("--file --configFile=" + $(@($TraefikDataPath, "traefik.toml") -Join $PathSeparator))
     $DenTraefik.External = $config.TraefikExternal
     $Services += $DenTraefik
 
@@ -725,7 +729,7 @@ function Start-WaykBastion
     $Platform = $config.DockerPlatform
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
     Export-PickyConfig -ConfigPath:$ConfigPath
     Export-GatewayConfig -ConfigPath:$ConfigPath
 

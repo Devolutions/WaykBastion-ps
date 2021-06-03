@@ -369,7 +369,7 @@ function Test-WaykBastionConfig
     }
 }
 
-function Export-TraefikToml()
+function Export-TraefikConfig()
 {
     param(
         [string] $ConfigPath
@@ -383,17 +383,18 @@ function Export-TraefikToml()
     $TraefikPath = Join-Path $ConfigPath "traefik"
     New-Item -Path $TraefikPath -ItemType "Directory" -Force | Out-Null
 
-    $TraefikTomlFile = Join-Path $TraefikPath "traefik.toml"
+    $TraefikYamlFile = Join-Path $TraefikPath "traefik.yaml"
 
-    $TraefikToml = New-TraefikToml -Platform $config.DockerPlatform `
+    $TraefikYaml = New-TraefikConfig -Platform $config.DockerPlatform `
         -ListenerUrl $config.ListenerUrl `
         -LucidUrl $config.LucidUrl `
         -PickyUrl $config.PickyUrl `
         -DenRouterUrl $config.DenRouterUrl `
         -DenServerUrl $config.DenServerUrl `
-        -JetExternal $config.JetExternal
+        -JetExternal $config.JetExternal `
+        -GatewayUrl "http://den-gateway:7171"
 
-    Set-Content -Path $TraefikTomlFile -Value $TraefikToml
+    Set-Content -Path $TraefikYamlFile -Value $TraefikYaml
 }
 
 function Export-PickyConfig()
@@ -643,7 +644,7 @@ function New-WaykBastionConfig
 
     Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
 }
 
 function Set-WaykBastionConfig
@@ -750,7 +751,7 @@ function Set-WaykBastionConfig
 
     Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
 }
 
 function Get-WaykBastionConfig
