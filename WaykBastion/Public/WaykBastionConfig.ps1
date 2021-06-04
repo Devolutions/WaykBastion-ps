@@ -37,6 +37,7 @@ class WaykBastionConfig
 
     # Jet
     [string] $JetRelayUrl
+    [string] $JetInternalUrl
     [int] $JetTcpPort
     [bool] $JetExternal = $false
     [string] $JetRelayImage
@@ -218,11 +219,12 @@ function Expand-WaykBastionConfig
     $ServerLogLevelDefault = "info"
     $LucidLogLevelDefault = "warn"
     $ListenerUrlDefault = "http://0.0.0.0:4000"
-    $JetRelayUrlDefault = "https://api.jet-relay.net"
     $PickyUrlDefault = "http://den-picky:12345"
     $LucidUrlDefault = "http://den-lucid:4242"
     $DenServerUrlDefault = "http://den-server:10255"
     $DenRouterUrlDefault = "http://den-server:4491"
+    $JetRelayUrlDefault = "https://api.jet-relay.net"
+    $JetInternalUrlDefault = "http://den-gateway:7171"
 
     if (-Not $config.DockerNetwork) {
         $config.DockerNetwork = $DockerNetworkDefault
@@ -234,6 +236,7 @@ function Expand-WaykBastionConfig
         $LucidUrlDefault = $LucidUrlDefault -Replace "den-lucid", $config.DockerHost
         $DenServerUrlDefault = $DenServerUrlDefault -Replace "den-server", $config.DockerHost
         $DenRouterUrlDefault = $DenRouterUrlDefault -Replace "den-server", $config.DockerHost
+        $JetInternalUrlDefault = $JetInternalUrlDefault -Replace "den-gateway", $config.DockerHost
     }
 
     if (-Not $config.DockerPlatform) {
@@ -290,6 +293,10 @@ function Expand-WaykBastionConfig
 
     if (-Not $config.DenRouterUrl) {
         $config.DenRouterUrl = $DenRouterUrlDefault
+    }
+
+    if (-Not $config.JetInternalUrl) {
+        $config.JetInternalUrl = $JetInternalUrlDefault
     }
 
     if ($config.JetExternal) {
@@ -392,7 +399,7 @@ function Export-TraefikConfig()
         -DenRouterUrl $config.DenRouterUrl `
         -DenServerUrl $config.DenServerUrl `
         -JetExternal $config.JetExternal `
-        -GatewayUrl "http://den-gateway:7171"
+        -GatewayUrl $config.JetInternalUrl
 
     Set-Content -Path $TraefikYamlFile -Value $TraefikYaml
 }
@@ -565,6 +572,7 @@ function New-WaykBastionConfig
 
         # Jet
         [string] $JetRelayUrl,
+        [string] $JetInternalUrl,
         [int] $JetTcpPort,
         [bool] $JetExternal,
         [string] $JetRelayImage,
@@ -684,6 +692,7 @@ function Set-WaykBastionConfig
 
         # Jet
         [string] $JetRelayUrl,
+        [string] $JetInternalUrl,
         [int] $JetTcpPort,
         [bool] $JetExternal,
         [string] $JetRelayImage,

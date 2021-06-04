@@ -492,6 +492,8 @@ function Get-WaykBastionService
         $DenTraefik.Networks += $DenNetwork
     }
     $DenTraefik.PublishAll = $true
+    $TraefikConfigFile = @($TraefikDataPath, "traefik.yaml") -Join $PathSeparator
+    $DenTraefik.Command = "--configfile `"$TraefikConfigFile`""
     $DenTraefik.Volumes = @("$ConfigPath/traefik:$TraefikDataPath")
     $DenTraefik.External = $config.TraefikExternal
     $Services += $DenTraefik
@@ -515,6 +517,7 @@ function Get-WaykBastionService
         if ($DenNetwork -NotMatch "none") {
             $DenGateway.Networks += $DenNetwork
         } else {
+            $DenGateway.TargetPorts += 7171
             $DenGateway.PublishAll = $true
         }
 

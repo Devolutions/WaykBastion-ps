@@ -155,6 +155,7 @@ function New-TraefikConfig
         $traefik.http.routers.Add("gateway", [ordered]@{
                     "rule"        = "PathPrefix(``/jet``)";
                     "service"     = "gateway";
+                    "tls"         = @{};
                 })
         $traefik.http.services.Add("gateway", [ordered]@{
                     "loadBalancer" = [ordered]@{
