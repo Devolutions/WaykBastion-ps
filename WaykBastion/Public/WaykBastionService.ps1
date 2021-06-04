@@ -41,7 +41,7 @@ function Get-WaykBastionImage
     $ServerVersion = '3.6.0'
 
     $MongoVersion = '4.2'
-    $TraefikVersion = '1.7'
+    $TraefikVersion = '2.4'
     $NatsVersion = '2.1'
     $RedisVersion = '5.0'
 
@@ -79,7 +79,8 @@ function Get-WaykBastionImage
         @('den-lucid','den-picky','den-server','den-gateway') | ForEach-Object {
             $images[$_] = $images[$_] -Replace "servercore-ltsc2019", "nanoserver-1809"
         }
-        $images['den-traefik'] = "library/traefik:${TraefikVersion}-nanoserver";
+        #$images['den-mongo'] = "library/mongo:${MongoVersion}-nanoserver-1809";
+        #$images['den-traefik'] = "library/traefik:${TraefikVersion}-nanoserver";
         $images['den-nats'] = "library/nats:${NatsVersion}-nanoserver";
     }
 
@@ -491,8 +492,9 @@ function Get-WaykBastionService
         $DenTraefik.Networks += $DenNetwork
     }
     $DenTraefik.PublishAll = $true
+    $TraefikConfigFile = @($TraefikDataPath, "traefik.yaml") -Join $PathSeparator
+    $DenTraefik.Command = "--configfile `"$TraefikConfigFile`""
     $DenTraefik.Volumes = @("$ConfigPath/traefik:$TraefikDataPath")
-    $DenTraefik.Command = ("--file --configFile=" + $(@($TraefikDataPath, "traefik.toml") -Join $PathSeparator))
     $DenTraefik.External = $config.TraefikExternal
     $Services += $DenTraefik
 
@@ -515,6 +517,7 @@ function Get-WaykBastionService
         if ($DenNetwork -NotMatch "none") {
             $DenGateway.Networks += $DenNetwork
         } else {
+            $DenGateway.TargetPorts += 7171
             $DenGateway.PublishAll = $true
         }
 
@@ -725,7 +728,7 @@ function Start-WaykBastion
     $Platform = $config.DockerPlatform
     $Services = Get-WaykBastionService -ConfigPath:$ConfigPath -Config $config
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
     Export-PickyConfig -ConfigPath:$ConfigPath
     Export-GatewayConfig -ConfigPath:$ConfigPath
 

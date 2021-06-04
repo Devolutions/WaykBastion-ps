@@ -37,6 +37,7 @@ class WaykBastionConfig
 
     # Jet
     [string] $JetRelayUrl
+    [string] $JetInternalUrl
     [int] $JetTcpPort
     [bool] $JetExternal = $false
     [string] $JetRelayImage
@@ -218,11 +219,12 @@ function Expand-WaykBastionConfig
     $ServerLogLevelDefault = "info"
     $LucidLogLevelDefault = "warn"
     $ListenerUrlDefault = "http://0.0.0.0:4000"
-    $JetRelayUrlDefault = "https://api.jet-relay.net"
     $PickyUrlDefault = "http://den-picky:12345"
     $LucidUrlDefault = "http://den-lucid:4242"
     $DenServerUrlDefault = "http://den-server:10255"
     $DenRouterUrlDefault = "http://den-server:4491"
+    $JetRelayUrlDefault = "https://api.jet-relay.net"
+    $JetInternalUrlDefault = "http://den-gateway:7171"
 
     if (-Not $config.DockerNetwork) {
         $config.DockerNetwork = $DockerNetworkDefault
@@ -234,6 +236,7 @@ function Expand-WaykBastionConfig
         $LucidUrlDefault = $LucidUrlDefault -Replace "den-lucid", $config.DockerHost
         $DenServerUrlDefault = $DenServerUrlDefault -Replace "den-server", $config.DockerHost
         $DenRouterUrlDefault = $DenRouterUrlDefault -Replace "den-server", $config.DockerHost
+        $JetInternalUrlDefault = $JetInternalUrlDefault -Replace "den-gateway", $config.DockerHost
     }
 
     if (-Not $config.DockerPlatform) {
@@ -290,6 +293,10 @@ function Expand-WaykBastionConfig
 
     if (-Not $config.DenRouterUrl) {
         $config.DenRouterUrl = $DenRouterUrlDefault
+    }
+
+    if (-Not $config.JetInternalUrl) {
+        $config.JetInternalUrl = $JetInternalUrlDefault
     }
 
     if ($config.JetExternal) {
@@ -369,7 +376,7 @@ function Test-WaykBastionConfig
     }
 }
 
-function Export-TraefikToml()
+function Export-TraefikConfig()
 {
     param(
         [string] $ConfigPath
@@ -383,17 +390,18 @@ function Export-TraefikToml()
     $TraefikPath = Join-Path $ConfigPath "traefik"
     New-Item -Path $TraefikPath -ItemType "Directory" -Force | Out-Null
 
-    $TraefikTomlFile = Join-Path $TraefikPath "traefik.toml"
+    $TraefikYamlFile = Join-Path $TraefikPath "traefik.yaml"
 
-    $TraefikToml = New-TraefikToml -Platform $config.DockerPlatform `
+    $TraefikYaml = New-TraefikConfig -Platform $config.DockerPlatform `
         -ListenerUrl $config.ListenerUrl `
         -LucidUrl $config.LucidUrl `
         -PickyUrl $config.PickyUrl `
         -DenRouterUrl $config.DenRouterUrl `
         -DenServerUrl $config.DenServerUrl `
-        -JetExternal $config.JetExternal
+        -JetExternal $config.JetExternal `
+        -GatewayUrl $config.JetInternalUrl
 
-    Set-Content -Path $TraefikTomlFile -Value $TraefikToml
+    Set-Content -Path $TraefikYamlFile -Value $TraefikYaml
 }
 
 function Export-PickyConfig()
@@ -564,6 +572,7 @@ function New-WaykBastionConfig
 
         # Jet
         [string] $JetRelayUrl,
+        [string] $JetInternalUrl,
         [int] $JetTcpPort,
         [bool] $JetExternal,
         [string] $JetRelayImage,
@@ -643,7 +652,7 @@ function New-WaykBastionConfig
 
     Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
 }
 
 function Set-WaykBastionConfig
@@ -683,6 +692,7 @@ function Set-WaykBastionConfig
 
         # Jet
         [string] $JetRelayUrl,
+        [string] $JetInternalUrl,
         [int] $JetTcpPort,
         [bool] $JetExternal,
         [string] $JetRelayImage,
@@ -750,7 +760,7 @@ function Set-WaykBastionConfig
 
     Save-WaykBastionConfig -ConfigPath:$ConfigPath -Config:$Config -ConfigFormat $WaykBastionConfigFormat -ErrorAction 'Stop'
 
-    Export-TraefikToml -ConfigPath:$ConfigPath
+    Export-TraefikConfig -ConfigPath:$ConfigPath
 }
 
 function Get-WaykBastionConfig

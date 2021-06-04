@@ -1,5 +1,5 @@
 
-function New-TraefikToml
+function New-TraefikConfig
 {
     [OutputType('System.String')]
     param(
@@ -9,7 +9,8 @@ function New-TraefikToml
         [string] $PickyUrl,
         [string] $DenRouterUrl,
         [string] $DenServerUrl,
-        [bool] $JetExternal
+        [bool] $JetExternal,
+        [string] $GatewayUrl
     )
 
     $url = [System.Uri]::new($ListenerUrl)
@@ -27,7 +28,7 @@ function New-TraefikToml
     # note: .pem file should contain leaf cert + intermediate CA cert, in that order.
 
     $TraefikPort = $Port
-    $TraefikEntrypoint = $Protocol
+    $TraefikYamlFile = $(@($TraefikDataPath, "traefik.yaml") -Join $PathSeparator)
     $TraefikCertFile = $(@($TraefikDataPath, "den-server.pem") -Join $PathSeparator)
     $TraefikKeyFile = $(@($TraefikDataPath, "den-server.key") -Join $PathSeparator)
 
@@ -35,122 +36,136 @@ function New-TraefikToml
     $TraefikCertFile = $TraefikCertFile -replace '\\', '\\'
     $TraefikKeyFile = $TraefikKeyFile -replace '\\', '\\'
 
-    $templates = @()
-
-    $templates += '
-logLevel = "INFO"
-
-[file]
-
-[entryPoints]
-    [entryPoints.${TraefikEntrypoint}]
-    address = ":${TraefikPort}"'
+    $traefik = [ordered]@{
+        "log"         = [ordered]@{
+            "level" = "WARN";
+        }
+        "providers"   = [ordered]@{
+            "file" = [ordered]@{
+                "watch"     = $true;
+                "filename" = $TraefikYamlFile;
+            }
+        }
+        "entryPoints" = [ordered]@{
+            "web" = [ordered]@{
+                "address" = "`:$TraefikPort";
+            }
+        }
+        "http"        = [ordered]@{
+            "routers"     = [ordered]@{
+                "lucid"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/lucid``)";
+                    "service"     = "lucid";
+                    "middlewares" = @("lucid");
+                    "tls"         = @{};
+                }
+                "picky"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/picky``)";
+                    "service"     = "picky";
+                    "middlewares" = @("picky");
+                    "tls"         = @{};
+                }
+                "den-router" = [ordered]@{
+                    "rule"        = "PathPrefix(``/cow``)";
+                    "service"     = "den-router";
+                    "middlewares" = @("den-router");
+                    "tls"         = @{};
+                }
+                "den-server" = [ordered]@{
+                    "rule"        = "PathPrefix(``/``)";
+                    "service"     = "den-server";
+                    "middlewares" = @("web-redirect");
+                    "tls"         = @{};
+                }
+            }
+            "middlewares" = [ordered]@{
+                "lucid"        = [ordered]@{
+                    "stripPrefix" = [ordered]@{
+                        "prefixes" = @("/lucid")
+                    }
+                }
+                "picky"        = [ordered]@{
+                    "stripPrefix" = [ordered]@{
+                        "prefixes" = @("/picky")
+                    }
+                }
+                "den-router"   = [ordered]@{
+                    "stripPrefix" = [ordered]@{
+                        "prefixes" = @("/cow")
+                    }
+                }
+                "web-redirect" = [ordered]@{
+                    "redirectRegex" = [ordered]@{
+                        "regex"       = "^http(s)?://([^/]+)/?$";
+                        "replacement" = "http`$1://`$2/web";
+                    }
+                }
+            }
+            "services"    = [ordered]@{
+                "lucid"      = [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $LucidUrl }
+                        )
+                    }
+                }
+                "picky"      = [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $PickyUrl }
+                        )
+                    }
+                }
+                "den-router" = [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $DenRouterUrl }
+                        )
+                    }
+                }
+                "den-server" = [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $DenServerUrl }
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     if ($Protocol -eq 'https') {
-        $templates += '
-        [entryPoints.${TraefikEntrypoint}.tls]
-            [entryPoints.${TraefikEntrypoint}.tls.defaultCertificate]
-            certFile = "${TraefikCertFile}"
-            keyFile = "${TraefikKeyFile}"'
+        $traefik.Add("tls", [ordered]@{
+                "stores" = [ordered]@{
+                    "default" = [ordered]@{
+                        "defaultCertificate" = [ordered]@{
+                            "certFile" = $TraefikCertFile;
+                            "keyFile"  = $TraefikKeyFile;
+                        }
+                    }
+                }
+            })
     }
-
-    $templates += '
-        [entryPoints.${TraefikEntrypoint}.redirect]
-        regex = "^http(s)?://([^/]+)/?`$"
-        replacement = "http`$1://`$2/web"
-    '
-
-    $templates += '
-[frontends]
-    [frontends.lucid]
-    passHostHeader = true
-    backend = "lucid"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.lucid.routes.lucid]
-        rule = "PathPrefixStrip:/lucid"
-
-    [frontends.lucidop]
-    passHostHeader = true
-    backend = "lucid"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.lucidop.routes.lucidop]
-        rule = "PathPrefix:/op"
-
-    [frontends.lucidauth]
-    passHostHeader = true
-    backend = "lucid"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.lucidauth.routes.lucidauth]
-        rule = "PathPrefix:/auth"
-
-    [frontends.picky]
-    passHostHeader = true
-    backend = "picky"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.picky.routes.picky]
-        rule = "PathPrefixStrip:/picky"
-
-    [frontends.router]
-    passHostHeader = true
-    backend = "router"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.router.routes.router]
-        rule = "PathPrefixStrip:/cow"
-
-    [frontends.server]
-    passHostHeader = true
-    backend = "server"
-    entrypoints = ["${TraefikEntrypoint}"]
-'
 
     if (-Not $JetExternal) {
-        $templates += '
-    [frontends.gateway]
-    passHostHeader = true
-    backend = "gateway"
-    entrypoints = ["${TraefikEntrypoint}"]
-        [frontends.gateway.routes.gateway]
-        rule = "PathPrefix:/jet"
-'
+        $traefik.http.routers.Add("gateway", [ordered]@{
+                    "rule"        = "PathPrefix(``/jet``)";
+                    "service"     = "gateway";
+                    "tls"         = @{};
+                })
+        $traefik.http.services.Add("gateway", [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $GatewayUrl }
+                        )
+                    }
+                })
     }
 
-    $templates += '
-[backends]
-    [backends.lucid]
-        [backends.lucid.servers.lucid]
-        url = "${LucidUrl}"
-        weight = 10
-
-    [backends.picky]
-        [backends.picky.servers.picky]
-        url = "${PickyUrl}"
-        method="drr"
-        weight = 10
-
-    [backends.router]
-        [backends.router.servers.router]
-        url = "${DenRouterUrl}"
-        method="drr"
-        weight = 10
-
-    [backends.server]
-        [backends.server.servers.server]
-        url = "${DenServerUrl}"
-        weight = 10
-        method="drr"
-'
-
-    if (-Not $JetExternal) {
-            $templates += '
-    [backends.gateway]
-        [backends.gateway.servers.gateway]
-        url = "http://den-gateway:7171"
-        weight = 10
-        method="drr"
-'
-    }
-
-    $template = -Join $templates
-
-    return Invoke-Expression "@`"`r`n$template`r`n`"@"
+    $traefik | ConvertTo-Yaml
 }
