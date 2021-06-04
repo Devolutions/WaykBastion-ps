@@ -79,7 +79,7 @@ function Get-WaykBastionImage
         @('den-lucid','den-picky','den-server','den-gateway') | ForEach-Object {
             $images[$_] = $images[$_] -Replace "servercore-ltsc2019", "nanoserver-1809"
         }
-        $images['den-mongo'] = "library/mongo:${MongoVersion}-nanoserver-1809";
+        #$images['den-mongo'] = "library/mongo:${MongoVersion}-nanoserver-1809";
         #$images['den-traefik'] = "library/traefik:${TraefikVersion}-nanoserver";
         $images['den-nats'] = "library/nats:${NatsVersion}-nanoserver";
     }
