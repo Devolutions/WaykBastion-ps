@@ -79,6 +79,7 @@ function Get-WaykBastionImage
         @('den-lucid','den-picky','den-server','den-gateway') | ForEach-Object {
             $images[$_] = $images[$_] -Replace "servercore-ltsc2019", "nanoserver-1809"
         }
+        $images['den-mongo'] = "library/mongo:${MongoVersion}-nanoserver-1809";
         $images['den-traefik'] = "library/traefik:${TraefikVersion}-nanoserver";
         $images['den-nats'] = "library/nats:${NatsVersion}-nanoserver";
     }
@@ -491,11 +492,6 @@ function Get-WaykBastionService
         $DenTraefik.Networks += $DenNetwork
     }
     $DenTraefik.PublishAll = $true
-    $TraefikConfigFile = @($TraefikDataPath, "traefik.yaml") -Join $PathSeparator
-    $DenTraefik.Environment = [ordered]@{
-        "TRAEFIK_LOG_LEVEL" = "WARN";
-        "TRAEFIK_PROVIDERS_FILE_FILENAME" = $TraefikConfigFile;
-    }
     $DenTraefik.Volumes = @("$ConfigPath/traefik:$TraefikDataPath")
     $DenTraefik.External = $config.TraefikExternal
     $Services += $DenTraefik

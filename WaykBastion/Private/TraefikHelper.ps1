@@ -28,6 +28,7 @@ function New-TraefikConfig
     # note: .pem file should contain leaf cert + intermediate CA cert, in that order.
 
     $TraefikPort = $Port
+    $TraefikYamlFile = $(@($TraefikDataPath, "traefik.yaml") -Join $PathSeparator)
     $TraefikCertFile = $(@($TraefikDataPath, "den-server.pem") -Join $PathSeparator)
     $TraefikKeyFile = $(@($TraefikDataPath, "den-server.key") -Join $PathSeparator)
 
@@ -42,7 +43,7 @@ function New-TraefikConfig
         "providers"   = [ordered]@{
             "file" = [ordered]@{
                 "watch"     = $true;
-                "directory" = ".";
+                "filename" = $TraefikYamlFile;
             }
         }
         "entryPoints" = [ordered]@{
