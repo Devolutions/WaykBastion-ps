@@ -394,6 +394,7 @@ function Export-TraefikConfig()
 
     $TraefikYaml = New-TraefikConfig -Platform $config.DockerPlatform `
         -ListenerUrl $config.ListenerUrl `
+        -ExternalUrl $config.ExternalUrl `
         -LucidUrl $config.LucidUrl `
         -PickyUrl $config.PickyUrl `
         -DenRouterUrl $config.DenRouterUrl `

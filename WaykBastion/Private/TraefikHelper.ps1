@@ -5,6 +5,7 @@ function New-TraefikConfig
     param(
         [string] $Platform,
         [string] $ListenerUrl,
+        [string] $ExternalUrl,
         [string] $LucidUrl,
         [string] $PickyUrl,
         [string] $DenRouterUrl,
@@ -12,6 +13,9 @@ function New-TraefikConfig
         [bool] $JetExternal,
         [string] $GatewayUrl
     )
+
+    $url = [System.Uri]::new($ExternalUrl)
+    $ExternalScheme = $url.Scheme
 
     $url = [System.Uri]::new($ListenerUrl)
     $Port = $url.Port
@@ -57,25 +61,21 @@ function New-TraefikConfig
                     "rule"        = "PathPrefix(``/lucid``)";
                     "service"     = "lucid";
                     "middlewares" = @("lucid");
-                    "tls"         = @{};
                 }
                 "picky"      = [ordered]@{
                     "rule"        = "PathPrefix(``/picky``)";
                     "service"     = "picky";
                     "middlewares" = @("picky");
-                    "tls"         = @{};
                 }
                 "den-router" = [ordered]@{
                     "rule"        = "PathPrefix(``/cow``)";
                     "service"     = "den-router";
                     "middlewares" = @("den-router");
-                    "tls"         = @{};
                 }
                 "den-server" = [ordered]@{
                     "rule"        = "PathPrefix(``/``)";
                     "service"     = "den-server";
                     "middlewares" = @("web-redirect");
-                    "tls"         = @{};
                 }
             }
             "middlewares" = [ordered]@{
@@ -97,7 +97,7 @@ function New-TraefikConfig
                 "web-redirect" = [ordered]@{
                     "redirectRegex" = [ordered]@{
                         "regex"       = "^http(s)?://([^/]+)/?$";
-                        "replacement" = "http`$1://`$2/web";
+                        "replacement" = "${ExternalScheme}`://`$2/web";
                     }
                 }
             }
@@ -138,6 +138,21 @@ function New-TraefikConfig
         }
     }
 
+    if (-Not $JetExternal) {
+        $traefik.http.routers.Add("gateway", [ordered]@{
+                    "rule"        = "PathPrefix(``/jet``)";
+                    "service"     = "gateway";
+                })
+        $traefik.http.services.Add("gateway", [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $GatewayUrl }
+                        )
+                    }
+                })
+    }
+
     if ($Protocol -eq 'https') {
         $traefik.Add("tls", [ordered]@{
                 "stores" = [ordered]@{
@@ -149,22 +164,10 @@ function New-TraefikConfig
                     }
                 }
             })
-    }
 
-    if (-Not $JetExternal) {
-        $traefik.http.routers.Add("gateway", [ordered]@{
-                    "rule"        = "PathPrefix(``/jet``)";
-                    "service"     = "gateway";
-                    "tls"         = @{};
-                })
-        $traefik.http.services.Add("gateway", [ordered]@{
-                    "loadBalancer" = [ordered]@{
-                        "passHostHeader" = $true;
-                        "servers"        = @(
-                            @{"url" = $GatewayUrl }
-                        )
-                    }
-                })
+        foreach ($router in $traefik.http.routers.GetEnumerator()) {
+            $router.Value.Add("tls", @{})
+        }
     }
 
     $traefik | ConvertTo-Yaml
