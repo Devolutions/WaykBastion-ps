@@ -57,25 +57,21 @@ function New-TraefikConfig
                     "rule"        = "PathPrefix(``/lucid``)";
                     "service"     = "lucid";
                     "middlewares" = @("lucid");
-                    "tls"         = @{};
                 }
                 "picky"      = [ordered]@{
                     "rule"        = "PathPrefix(``/picky``)";
                     "service"     = "picky";
                     "middlewares" = @("picky");
-                    "tls"         = @{};
                 }
                 "den-router" = [ordered]@{
                     "rule"        = "PathPrefix(``/cow``)";
                     "service"     = "den-router";
                     "middlewares" = @("den-router");
-                    "tls"         = @{};
                 }
                 "den-server" = [ordered]@{
                     "rule"        = "PathPrefix(``/``)";
                     "service"     = "den-server";
                     "middlewares" = @("web-redirect");
-                    "tls"         = @{};
                 }
             }
             "middlewares" = [ordered]@{
@@ -138,6 +134,21 @@ function New-TraefikConfig
         }
     }
 
+    if (-Not $JetExternal) {
+        $traefik.http.routers.Add("gateway", [ordered]@{
+                    "rule"        = "PathPrefix(``/jet``)";
+                    "service"     = "gateway";
+                })
+        $traefik.http.services.Add("gateway", [ordered]@{
+                    "loadBalancer" = [ordered]@{
+                        "passHostHeader" = $true;
+                        "servers"        = @(
+                            @{"url" = $GatewayUrl }
+                        )
+                    }
+                })
+    }
+
     if ($Protocol -eq 'https') {
         $traefik.Add("tls", [ordered]@{
                 "stores" = [ordered]@{
@@ -149,22 +160,10 @@ function New-TraefikConfig
                     }
                 }
             })
-    }
 
-    if (-Not $JetExternal) {
-        $traefik.http.routers.Add("gateway", [ordered]@{
-                    "rule"        = "PathPrefix(``/jet``)";
-                    "service"     = "gateway";
-                    "tls"         = @{};
-                })
-        $traefik.http.services.Add("gateway", [ordered]@{
-                    "loadBalancer" = [ordered]@{
-                        "passHostHeader" = $true;
-                        "servers"        = @(
-                            @{"url" = $GatewayUrl }
-                        )
-                    }
-                })
+        foreach ($router in $traefik.http.routers.GetEnumerator()) {
+            $router.Value.Add("tls", @{})
+        }
     }
 
     $traefik | ConvertTo-Yaml
