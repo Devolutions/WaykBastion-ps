@@ -5,6 +5,7 @@ function New-TraefikConfig
     param(
         [string] $Platform,
         [string] $ListenerUrl,
+        [string] $ExternalUrl,
         [string] $LucidUrl,
         [string] $PickyUrl,
         [string] $DenRouterUrl,
@@ -12,6 +13,9 @@ function New-TraefikConfig
         [bool] $JetExternal,
         [string] $GatewayUrl
     )
+
+    $url = [System.Uri]::new($ExternalUrl)
+    $ExternalScheme = $url.Scheme
 
     $url = [System.Uri]::new($ListenerUrl)
     $Port = $url.Port
@@ -93,7 +97,7 @@ function New-TraefikConfig
                 "web-redirect" = [ordered]@{
                     "redirectRegex" = [ordered]@{
                         "regex"       = "^http(s)?://([^/]+)/?$";
-                        "replacement" = "http`$1://`$2/web";
+                        "replacement" = "${ExternalScheme}`://`$2/web";
                     }
                 }
             }
