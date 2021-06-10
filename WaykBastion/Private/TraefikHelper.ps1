@@ -65,6 +65,14 @@ function New-TraefikConfig
                     "service"     = "lucid";
                     "middlewares" = @("lucid");
                 }
+                "lucid-op"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/op``)";
+                    "service"     = "lucid";
+                }
+                "lucid-auth"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/auth``)";
+                    "service"     = "lucid";
+                }
                 "picky"      = [ordered]@{
                     "rule"        = "PathPrefix(``/picky``)";
                     "service"     = "picky";
