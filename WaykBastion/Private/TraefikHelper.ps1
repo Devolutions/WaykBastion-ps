@@ -53,6 +53,9 @@ function New-TraefikConfig
         "entryPoints" = [ordered]@{
             "web" = [ordered]@{
                 "address" = "`:$TraefikPort";
+                "forwardedHeaders" = [ordered]@{
+                    "insecure" = $true
+                }
             }
         }
         "http"        = [ordered]@{
@@ -97,7 +100,7 @@ function New-TraefikConfig
                 "web-redirect" = [ordered]@{
                     "redirectRegex" = [ordered]@{
                         "regex"       = "^http(s)?://([^/]+)/?$";
-                        "replacement" = "${ExternalScheme}`://`$2/web";
+                        "replacement" = "http`$1://`$2/web";
                     }
                 }
             }
