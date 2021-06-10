@@ -53,6 +53,9 @@ function New-TraefikConfig
         "entryPoints" = [ordered]@{
             "web" = [ordered]@{
                 "address" = "`:$TraefikPort";
+                "forwardedHeaders" = [ordered]@{
+                    "insecure" = $true
+                }
             }
         }
         "http"        = [ordered]@{
@@ -61,6 +64,14 @@ function New-TraefikConfig
                     "rule"        = "PathPrefix(``/lucid``)";
                     "service"     = "lucid";
                     "middlewares" = @("lucid");
+                }
+                "lucid-op"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/op``)";
+                    "service"     = "lucid";
+                }
+                "lucid-auth"      = [ordered]@{
+                    "rule"        = "PathPrefix(``/auth``)";
+                    "service"     = "lucid";
                 }
                 "picky"      = [ordered]@{
                     "rule"        = "PathPrefix(``/picky``)";
@@ -97,7 +108,7 @@ function New-TraefikConfig
                 "web-redirect" = [ordered]@{
                     "redirectRegex" = [ordered]@{
                         "regex"       = "^http(s)?://([^/]+)/?$";
-                        "replacement" = "${ExternalScheme}`://`$2/web";
+                        "replacement" = "http`$1://`$2/web";
                     }
                 }
             }
