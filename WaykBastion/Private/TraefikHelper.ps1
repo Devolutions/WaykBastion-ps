@@ -108,7 +108,7 @@ function New-TraefikConfig
                 "web-redirect" = [ordered]@{
                     "redirectRegex" = [ordered]@{
                         "regex"       = "^http(s)?://([^/]+)/?$";
-                        "replacement" = "http`$1://`$2/web";
+                        "replacement" = "${ExternalScheme}`://`$2/web";
                     }
                 }
             }
