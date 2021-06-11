@@ -935,6 +935,7 @@ function ConvertTo-NormalizedUrlString
         $url = [System.Uri]::new($Value)
         $start = $url.Scheme + "://" + $url.DnsSafeHost
         $Value = $Value -IReplace $start, $start
+        $Value = $Value.TrimEnd("/")
     }
     $Value
 }
