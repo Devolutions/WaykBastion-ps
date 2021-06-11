@@ -39,6 +39,7 @@ class WaykBastionConfig
     [string] $JetRelayUrl
     [string] $JetInternalUrl
     [int] $JetTcpPort
+    [string] $JetTcpExternalUrl
     [bool] $JetExternal = $false
     [string] $JetRelayImage
 
@@ -309,6 +310,10 @@ function Expand-WaykBastionConfig
         if (-Not $config.JetTcpPort) {
             $config.JetTcpPort = 8080
         }
+
+        if (-Not $config.JetTcpExternalUrl) {
+            $config.JetTcpExternalUrl = "tcp://*:$($config.JetTcpPort)"
+        }
     }
 
     Expand-WaykBastionConfigImage -Config:$Config
@@ -462,7 +467,7 @@ function Export-GatewayConfig()
 
         $GatewayListeners += [PSCustomObject]@{
             InternalUrl = "tcp://*:${JetTcpPort}";
-            ExternalUrl = "tcp://*:${JetTcpPort}";
+            ExternalUrl = $config.JetTcpExternalUrl;
         }
     }
 
@@ -575,6 +580,7 @@ function New-WaykBastionConfig
         [string] $JetRelayUrl,
         [string] $JetInternalUrl,
         [int] $JetTcpPort,
+        [string] $JetTcpExternalUrl,
         [bool] $JetExternal,
         [string] $JetRelayImage,
 
@@ -695,6 +701,7 @@ function Set-WaykBastionConfig
         [string] $JetRelayUrl,
         [string] $JetInternalUrl,
         [int] $JetTcpPort,
+        [string] $JetTcpExternalUrl,
         [bool] $JetExternal,
         [string] $JetRelayImage,
 
