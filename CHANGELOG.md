@@ -13,7 +13,8 @@ This document provides a list of notable changes introduced in Wayk Bastion by r
   * Add more information displayed in web interface dashboard
   * Fix an issue where sorting by `last seen date` didn't work in Client page
   * Fix an issue where Wayk Client didn't open from the web interface 
-  * Display the right icon for an RDP session
+  * Display the right icon for a RDP session
+  * Wayk SSH and Wayk SFTP protocols support
 
 ## 2021.1.5 (2021-05-13)
   * Improve user interface to simplify how user groups are managed
