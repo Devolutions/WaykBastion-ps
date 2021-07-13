@@ -2,6 +2,19 @@
 
 This document provides a list of notable changes introduced in Wayk Bastion by release.
 
+## 2021.1.6 (2021-07-12)
+  * Update to traefik 2.4
+  * Fix an issue where web interface can't be loaded if the external URL has `/` at the end
+  * Old Wayk Agent (< 2020.2.0) are now deprecated
+  * Support deletion of tenants/units/resource groups and all their children
+  * Fix an issue where server was online in the web interface even if Wayk Agent was stopped
+  * Fix an issue where success was returned on server enrollment even if server was not existing in database
+  * Improve machine searching: Search also in machine description, machine label, Windows domain, user agent and target id
+  * Add more information displayed in web interface dashboard
+  * Fix an issue where sorting by `last seen date` didn't work in Client page
+  * Fix an issue where Wayk Client didn't open from the web interface 
+  * Display the right icon for an RDP session
+
 ## 2021.1.5 (2021-05-13)
   * Improve user interface to simplify how user groups are managed
   * New role: `Technician`. It has all permissions on machines plus permission to list machine` sessions
